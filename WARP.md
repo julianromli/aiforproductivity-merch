@@ -52,7 +52,7 @@ Run these in Supabase Dashboard → SQL Editor in order.
 ## 🏗️ Architecture
 
 ### Tech Stack
-- **Framework:** Next.js 15.2.4 (App Router)
+- **Framework:** Next.js 15.5.4 (App Router, latest)
 - **Language:** TypeScript 5
 - **Styling:** Tailwind CSS v4, shadcn/ui (New York style)
 - **Database:** Supabase (PostgreSQL)
@@ -463,5 +463,18 @@ BLOB_READ_WRITE_TOKEN=
 ---
 
 **Last Updated:** 2025-01-30  
-**Next.js Version:** 15.2.4  
+**Next.js Version:** 15.5.4 (upgraded 2025-01-30)  
 **Package Manager:** pnpm
+
+---
+
+## 📝 Recent Changes
+
+### 2025-01-30: Next.js 15.5.4 Upgrade
+- ✅ Upgraded Next.js from 15.2.4 → 15.5.4
+- ✅ Cleaned up unused fonts in `app/layout.tsx`:
+  - Removed: `Inter`, duplicate `Geist_Mono`, `Source_Serif_4`
+  - Kept: `Plus_Jakarta_Sans` & `Geist_Mono` (actively used)
+- ✅ Fixed Google Fonts timeout issue during build
+- ✅ Build verified successful with all routes generating properly
+- ⚠️ Note: Use `pnpm` (not `npm`) for package management
