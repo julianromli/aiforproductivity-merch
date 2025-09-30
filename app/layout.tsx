@@ -4,15 +4,15 @@ import "./globals.css"
 
 import ClientLayout from "./client-layout"
 
-import { Geist, Geist_Mono, Inter as V0_Font_Inter, Geist_Mono as V0_Font_Geist_Mono, Source_Serif_4 as V0_Font_Source_Serif_4 } from 'next/font/google'
+import { Plus_Jakarta_Sans, Geist_Mono, Inter as V0_Font_Inter, Geist_Mono as V0_Font_Geist_Mono, Source_Serif_4 as V0_Font_Source_Serif_4 } from 'next/font/google'
 
 // Initialize fonts
 V0_Font_Inter({ weight: ["100","200","300","400","500","600","700","800","900"] })
 V0_Font_Geist_Mono({ weight: ["100","200","300","400","500","600","700","800","900"] })
 V0_Font_Source_Serif_4({ weight: ["200","300","400","500","600","700","800","900"] })
 
-const geistSans = Geist({
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+const plusJakartaSans = Plus_Jakarta_Sans({
+  weight: ["200", "300", "400", "500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-sans",
 })
@@ -20,7 +20,7 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
-  variable: "--font-mono", // Fixed variable name from --font-sans to --font-mono
+  variable: "--font-mono",
 })
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${plusJakartaSans.variable} ${geistMono.variable}`}>
       <ClientLayout>{children}</ClientLayout>
     </html>
   )
