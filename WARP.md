@@ -382,6 +382,7 @@ Check Vercel deployment logs for production issues.
 - `DOKUMENTASI_AI.md` - AI integration guide (Indonesian)
 - `ADMIN_AUTH_SETUP.md` - Authentication setup guide
 - `SETUP_SUPABASE.md` - Database setup instructions
+- `docs/ADMIN_USER_GUIDE.md` - **User guide for non-programmers (Indonesian)** 📖
 
 ### Configuration Files
 - `components.json` - shadcn/ui config (New York style)
