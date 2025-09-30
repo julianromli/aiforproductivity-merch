@@ -317,7 +317,7 @@ export default function BananaSportswearStorefront() {
       >
         <div
           className={`border-2 border-dashed transition-all duration-300 ${
-            isDragOver ? "border-primary bg-background shadow-lg scale-105" : "border-border bg-secondary"
+            isDragOver ? "border-primary bg-background shadow-lg scale-105" : "border-border bg-background"
           } p-8 text-center w-64 hover:shadow-md hover:scale-102`}
           onClick={() => !userPhoto && document.getElementById("user-photo")?.click()}
         >
@@ -400,15 +400,16 @@ export default function BananaSportswearStorefront() {
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/acme-logo.png" alt="BANANA SPORTSWEAR" className="h-10 w-auto" />
+            <img src="https://aiforproductivity.id/wp-content/uploads/2025/06/AI-For-Productivity-Logo-e1752123757152.png" alt="AI FOR PRODUCTIVITY" className="h-10 w-auto" />
+          <p href="https://aiforproductivity.id/" className="text-xl font-bold ms-4">AI For Productivity</p>
           </div>
 
           <nav className="hidden md:flex items-center space-x-12">
-            {["NEW", "MEN", "WOMEN", "KIDS"].map((item, index) => (
+            {["New", "Men", "Women", "Kids"].map((item, index) => (
               <a
                 key={item}
                 href="#"
-                className={`text-foreground hover:text-muted-foreground text-xs font-medium tracking-widest uppercase transition-all duration-500 ${
+                className={`text-foreground hover:text-muted-foreground text-md font-bold transition-all duration-500 ${
                   isPageLoaded ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
                 }`}
                 style={{ transitionDelay: `${200 + index * 100}ms` }}
@@ -416,17 +417,6 @@ export default function BananaSportswearStorefront() {
                 {item}
               </a>
             ))}
-            <Button
-              variant="outline"
-              size="sm"
-              className={`border-primary text-foreground hover:bg-primary hover:text-primary-foreground text-xs font-medium tracking-widest uppercase bg-transparent px-6 transition-all duration-500 rounded-lg ${
-                isPageLoaded ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
-              }`}
-              style={{ transitionDelay: "600ms" }}
-              onClick={() => document.getElementById("user-photo")?.click()}
-            >
-              AI TRY-ON
-            </Button>
           </nav>
 
           <div
@@ -435,12 +425,12 @@ export default function BananaSportswearStorefront() {
             }`}
             style={{ transitionDelay: "400ms" }}
           >
-            <div className="hidden md:flex items-center bg-secondary rounded-none px-4 py-2 border border-border">
+            <div className="hidden md:flex items-center bg-accent rounded-full px-4 py-2 border border-border">
               <Search className="w-4 h-4 text-muted-foreground mr-3" />
               <input
                 type="text"
-                placeholder="SEARCH"
-                className="bg-transparent text-xs outline-none placeholder-muted-foreground w-24 font-sans tracking-wider"
+                placeholder="Search"
+                className="bg-transparent text-xs outline-none placeholder-muted-foreground w-24 font-sans"
               />
             </div>
             <Heart className="w-4 h-4 text-foreground cursor-pointer hover:text-muted-foreground transition-colors" />
@@ -529,18 +519,18 @@ export default function BananaSportswearStorefront() {
       </section>
 
       <footer
-        className={`border-t border-border px-8 py-16 bg-secondary transition-all duration-700 ${
+        className={`border-t border-border px-8 py-16 bg-accent transition-all duration-700 ${
           isPageLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
         }`}
         style={{ transitionDelay: "1000ms" }}
       >
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex justify-center mb-6">
-            <img src="/acme-logo.png" alt="BANANA SPORTSWEAR" className="h-8 w-auto opacity-40" />
+            <img src="https://aiforproductivity.id/wp-content/uploads/2025/06/AI-For-Productivity-Logo-e1752123757152.png" alt="BANANA SPORTSWEAR" className="h-8 w-auto opacity-40" />
           </div>
 
-          <p className="text-muted-foreground text-xs font-sans tracking-widest uppercase">
-            © 2025 BANANA SPORTSWEAR, INC. ALL RIGHTS RESERVED.
+          <p className="text-muted-foreground text-sm font-bold">
+            © 2025 AI For Productivity
           </p>
         </div>
       </footer>
