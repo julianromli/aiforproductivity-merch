@@ -4,8 +4,9 @@ import { createClient } from "@supabase/supabase-js"
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 // GET /api/products/[id] - Get single product with its AI prompt
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const { data, error } = await supabase
       .from("products")
       .select(
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         )
       `,
       )
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("is_active", true)
       .single()
 

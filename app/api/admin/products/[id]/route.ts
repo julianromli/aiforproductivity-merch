@@ -4,9 +4,10 @@ import { createClient } from "@supabase/supabase-js"
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 // GET /api/admin/products/[id] - Get single product
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { data, error } = await supabase.from("products").select("*, ai_prompts(*)").eq("id", params.id).single()
+    const { id } = await params
+    const { data, error } = await supabase.from("products").select("*, ai_prompts(*)").eq("id", id).single()
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -24,8 +25,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/admin/products/[id] - Update product
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { name, price, currency, category, description, image_url, is_active, sort_order } = body
 
@@ -40,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (is_active !== undefined) updateData.is_active = is_active
     if (sort_order !== undefined) updateData.sort_order = sort_order
 
-    const { data, error } = await supabase.from("products").update(updateData).eq("id", params.id).select().single()
+    const { data, error } = await supabase.from("products").update(updateData).eq("id", id).select().single()
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -58,9 +60,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/admin/products/[id] - Delete product
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error } = await supabase.from("products").delete().eq("id", params.id)
+    const { id } = await params
+    const { error } = await supabase.from("products").delete().eq("id", id)
 
     if (error) {
       console.error("[v0] Error deleting product:", error)

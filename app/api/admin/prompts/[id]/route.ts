@@ -4,12 +4,13 @@ import { createClient } from "@supabase/supabase-js"
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 // GET /api/admin/prompts/[id] - Get single prompt
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const { data, error } = await supabase
       .from("ai_prompts")
       .select("*, products(id, name, category)")
-      .eq("id", params.id)
+      .eq("id", id)
       .single()
 
     if (error) {
@@ -28,8 +29,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/admin/prompts/[id] - Update prompt
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { prompt_template, is_default } = body
 
@@ -40,11 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // If setting as default, first get the product_id
     if (is_default === true) {
-      const { data: currentPrompt } = await supabase
-        .from("ai_prompts")
-        .select("product_id")
-        .eq("id", params.id)
-        .single()
+      const { data: currentPrompt } = await supabase.from("ai_prompts").select("product_id").eq("id", id).single()
 
       if (currentPrompt) {
         // Unset other defaults for this product
@@ -52,11 +50,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           .from("ai_prompts")
           .update({ is_default: false })
           .eq("product_id", currentPrompt.product_id)
-          .neq("id", params.id)
+          .neq("id", id)
       }
     }
 
-    const { data, error } = await supabase.from("ai_prompts").update(updateData).eq("id", params.id).select().single()
+    const { data, error } = await supabase.from("ai_prompts").update(updateData).eq("id", id).select().single()
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -74,9 +72,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/admin/prompts/[id] - Delete prompt
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { error } = await supabase.from("ai_prompts").delete().eq("id", params.id)
+    const { id } = await params
+    const { error } = await supabase.from("ai_prompts").delete().eq("id", id)
 
     if (error) {
       console.error("[v0] Error deleting prompt:", error)

@@ -4,11 +4,12 @@ import { createServerClient } from "@/lib/supabase"
 export default async function EditProductPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const supabase = createServerClient()
 
-  const { data: product } = await supabase.from("products").select("*").eq("id", params.id).single()
+  const { data: product } = await supabase.from("products").select("*").eq("id", id).single()
 
   if (!product) {
     return (
