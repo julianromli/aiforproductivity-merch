@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { Upload, ShoppingBag, Heart, Search } from "lucide-react"
 import { ImageWithLoading } from "@/components/image-with-loading"
+import { ImagePreviewDialog } from "@/components/image-preview-dialog"
 import useSWR from "swr"
 
 interface Product {
@@ -101,6 +102,7 @@ export default function BananaSportswearStorefront() {
   const [showGallery, setShowGallery] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [currentProductName, setCurrentProductName] = useState("")
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -476,7 +478,23 @@ export default function BananaSportswearStorefront() {
                     viewMode === "generated" && showGallery ? `${index * 100}ms` : `${500 + index * 150}ms`,
                 }}
               >
-                <div className="relative w-full overflow-hidden mb-4">
+                <div 
+                  className="relative w-full overflow-hidden mb-4 cursor-pointer group/image"
+                  onClick={() => {
+                    const imageSrc = viewMode === "generated" && personalizedImages[product.id]
+                      ? personalizedImages[product.id]
+                      : product.image_url || "/placeholder.svg"
+                    const imageAlt = viewMode === "generated" && personalizedImages[product.id]
+                      ? `You modeling ${product.name}`
+                      : product.name
+                    setSelectedImage({ src: imageSrc, alt: imageAlt })
+                  }}
+                >
+                  <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-all duration-300 flex items-center justify-center z-10 pointer-events-none">
+                    <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2">
+                      <Search className="w-6 h-6 text-foreground" />
+                    </div>
+                  </div>
                   <ImageWithLoading
                     src={
                       viewMode === "generated" && personalizedImages[product.id]
@@ -534,6 +552,14 @@ export default function BananaSportswearStorefront() {
           </p>
         </div>
       </footer>
+
+      {/* Image Preview Dialog */}
+      <ImagePreviewDialog
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageSrc={selectedImage?.src || ""}
+        imageAlt={selectedImage?.alt || ""}
+      />
     </div>
   )
 }

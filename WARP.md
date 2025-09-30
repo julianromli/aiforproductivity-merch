@@ -12,6 +12,7 @@ AI-powered merchandise storefront with Google Gemini integration for generating 
 - Product catalog with categories and AI prompts
 - Vercel Blob storage for uploads
 - shadcn/ui component system (New York style)
+- **Image preview with zoom functionality** (custom implementation, no external deps)
 
 ---
 
@@ -80,6 +81,8 @@ app/
 
 components/
 ├── ui/                 # shadcn components (atomic)
+├── image-with-loading.tsx  # Image component with loading state
+├── image-preview-dialog.tsx  # Full-screen image preview with zoom
 └── [feature]/          # Feature-specific components
 
 lib/
@@ -469,7 +472,88 @@ BLOB_READ_WRITE_TOKEN=
 
 ---
 
+#### 6. Image Preview Feature
+**Custom zoom implementation (no external dependencies):**
+- Full-screen modal preview for product images
+- Zoom controls: buttons (0.5x - 4x) + mouse wheel
+- Pan/drag when zoomed (desktop & mobile)
+- Touch gestures support (mobile-friendly)
+- Keyboard accessible (ESC to close)
+- Works for both product images AND generated images
+
+**Component:** `components/image-preview-dialog.tsx`
+
+**Features:**
+```typescript
+// Zoom controls
+- Zoom In/Out buttons (±0.5x increments)
+- Mouse wheel zoom (0.1x increments)
+- Reset button (back to 100%)
+- Real-time percentage display
+
+// Pan/Drag (when zoomed > 100%)
+- Mouse drag on desktop
+- Touch drag on mobile
+- Cursor changes (grab/grabbing)
+
+// UI/UX
+- Dark backdrop with blur effect
+- Smooth animations
+- Dynamic instructions text
+- Search icon overlay on hover
+```
+
+**Integration Pattern:**
+```typescript
+// State management
+const [selectedImage, setSelectedImage] = useState<{
+  src: string
+  alt: string
+} | null>(null)
+
+// Click handler on product images
+<div onClick={() => setSelectedImage({ src, alt })}>
+  <ImageWithLoading src={src} alt={alt} />
+</div>
+
+// Render dialog
+<ImagePreviewDialog
+  isOpen={!!selectedImage}
+  onClose={() => setSelectedImage(null)}
+  imageSrc={selectedImage?.src || ""}
+  imageAlt={selectedImage?.alt || ""}
+/>
+```
+
+**Benefits:**
+- ✅ Zero external dependencies (pure React + CSS)
+- ✅ Lightweight (~200 lines, no bundle bloat)
+- ✅ Smooth performance (CSS transforms)
+- ✅ Mobile-friendly (touch support)
+- ✅ Accessible (ARIA labels, keyboard nav)
+
+---
+
 ## 📝 Recent Changes
+
+### 2025-01-30: Image Preview with Zoom Feature
+- ✅ **Implemented full-screen image preview with zoom functionality**
+- ✅ Created `components/image-preview-dialog.tsx` (custom implementation)
+- ✅ Features:
+  - Zoom in/out (0.5x - 4x range) via buttons or mouse wheel
+  - Pan/drag when zoomed (desktop mouse + mobile touch)
+  - Reset button to restore 100% zoom
+  - Dark backdrop with blur effect
+  - Smooth animations & transitions
+  - Keyboard accessible (ESC to close)
+  - Search icon overlay on hover (indicates clickability)
+- ✅ Integration in `app/page.tsx`:
+  - Click handler on all product images
+  - State management for selected image
+  - Works for both product images AND generated images
+- ✅ Zero external dependencies (pure React + CSS transforms)
+- ✅ Mobile-friendly with touch gesture support
+- ✅ Build successful, no TypeScript errors
 
 ### 2025-01-30: Next.js 15.5.4 Upgrade
 - ✅ Upgraded Next.js from 15.2.4 → 15.5.4
