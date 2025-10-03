@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Plus, Pencil, Trash2, Eye } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Loader2, Plus, Pencil, Trash2, Eye, Copy, MoreVertical } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -30,6 +31,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface AIPrompt {
   id: string
@@ -177,8 +185,8 @@ export default function PromptsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-3xl">AI Prompts</h1>
-          <p className="text-muted-foreground">Kelola prompt template untuk setiap produk</p>
+          <h1 className="font-bold text-3xl tracking-tight">AI Prompts</h1>
+          <p className="text-muted-foreground">Manage prompt templates for AI generation</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -260,41 +268,96 @@ export default function PromptsPage() {
 
       {/* Prompts List */}
       {loading ? (
-        <div className="flex h-48 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-16 w-full" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : prompts.length === 0 ? (
         <Card>
-          <CardContent className="flex h-48 items-center justify-center">
-            <p className="text-muted-foreground">Belum ada prompt. Klik "Add Prompt" untuk membuat yang pertama.</p>
+          <CardContent className="flex h-48 flex-col items-center justify-center text-center">
+            <p className="text-muted-foreground mb-4">Belum ada prompt. Klik "Add Prompt" untuk membuat yang pertama.</p>
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create First Prompt
+            </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           {prompts.map((prompt) => (
-            <Card key={prompt.id}>
+            <Card key={prompt.id} className="transition-all hover:shadow-md">
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{getProductName(prompt.product_id)}</CardTitle>
-                    <CardDescription>Created {new Date(prompt.created_at).toLocaleDateString()}</CardDescription>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{getProductName(prompt.product_id)}</CardTitle>
+                      {prompt.is_default && (
+                        <Badge variant="secondary" className="text-xs">
+                          Default
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription>
+                      Created {new Date(prompt.created_at).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {prompt.is_default && <Badge variant="secondary">Default</Badge>}
-                    <Button variant="ghost" size="icon" onClick={() => setPreviewPrompt(prompt.prompt_template)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(prompt)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(prompt.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setPreviewPrompt(prompt.prompt_template)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Preview
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          navigator.clipboard.writeText(prompt.prompt_template)
+                          toast({
+                            title: "Copied!",
+                            description: "Prompt copied to clipboard",
+                          })
+                        }}
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleEdit(prompt)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setDeleteId(prompt.id)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="line-clamp-2 font-mono text-muted-foreground text-sm">{prompt.prompt_template}</p>
+                <p className="line-clamp-3 font-mono text-muted-foreground text-sm leading-relaxed">
+                  {prompt.prompt_template}
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -303,12 +366,35 @@ export default function PromptsPage() {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewPrompt} onOpenChange={() => setPreviewPrompt(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Prompt Preview</DialogTitle>
+            <DialogDescription>Full prompt template content</DialogDescription>
           </DialogHeader>
-          <div className="rounded-lg border bg-muted p-4">
-            <p className="whitespace-pre-wrap font-mono text-sm">{previewPrompt}</p>
+          <div className="flex-1 overflow-y-auto">
+            <div className="rounded-lg border bg-muted/50 p-6">
+              <p className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                {previewPrompt}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (previewPrompt) {
+                  navigator.clipboard.writeText(previewPrompt)
+                  toast({
+                    title: "Copied!",
+                    description: "Prompt copied to clipboard",
+                  })
+                }
+              }}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copy
+            </Button>
+            <Button onClick={() => setPreviewPrompt(null)}>Close</Button>
           </div>
         </DialogContent>
       </Dialog>
