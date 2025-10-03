@@ -92,6 +92,12 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
+      config: {
+        responseModalities: ["IMAGE"],
+        imageConfig: {
+          aspectRatio: "4:5",
+        },
+      },
     })
 
     console.log("[v0] generateContent completed")
