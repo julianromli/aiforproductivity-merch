@@ -466,7 +466,7 @@ BLOB_READ_WRITE_TOKEN=
 
 ---
 
-**Last Updated:** 2025-01-30  
+**Last Updated:** 2025-02-03  
 **Next.js Version:** 15.5.4 (upgraded 2025-01-30)  
 **Package Manager:** pnpm
 
@@ -535,6 +535,28 @@ const [selectedImage, setSelectedImage] = useState<{
 ---
 
 ## 📝 Recent Changes
+
+### 2025-02-03: Product Image Aspect Ratio & Dialog Accessibility Fixes
+- ✅ **Implemented consistent 4:5 aspect ratio for all product images**
+- ✅ Added `AspectRatio` component from shadcn/ui via MCP
+- ✅ Features:
+  - All product images locked to 4:5 aspect ratio (896x1152px equivalent)
+  - Images with different ratios automatically fill/crop via `object-cover`
+  - Maintains consistent visual grid in product catalog
+  - Applies to both original product images AND AI-generated images
+  - Hover zoom effect preserved
+  - Image preview dialog integration maintained
+- ✅ **Fixed accessibility issues in ImagePreviewDialog:**
+  - Added hidden `DialogTitle` for screen reader accessibility (ARIA compliance)
+  - Fixed empty string error in image src attribute
+  - Prevents unnecessary page re-downloads
+  - Follows Radix UI Dialog best practices
+- ✅ Component files:
+  - `components/ui/aspect-ratio.tsx` (new - shadcn component)
+  - `components/image-preview-dialog.tsx` (updated - accessibility fixes)
+  - `app/page.tsx` (updated - AspectRatio integration)
+- ✅ Zero TypeScript errors, full accessibility compliance
+- ✅ Mobile-friendly, responsive design maintained
 
 ### 2025-01-30: Image Preview with Zoom Feature
 - ✅ **Implemented full-screen image preview with zoom functionality**

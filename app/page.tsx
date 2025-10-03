@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Upload, ShoppingBag, Heart, Search } from "lucide-react"
 import { ImageWithLoading } from "@/components/image-with-loading"
 import { ImagePreviewDialog } from "@/components/image-preview-dialog"
@@ -495,22 +496,24 @@ export default function BananaSportswearStorefront() {
                       <Search className="w-6 h-6 text-foreground" />
                     </div>
                   </div>
-                  <ImageWithLoading
-                    src={
-                      viewMode === "generated" && personalizedImages[product.id]
-                        ? personalizedImages[product.id]
-                        : product.image_url || "/placeholder.svg"
-                    }
-                    alt={
-                      viewMode === "generated" && personalizedImages[product.id]
-                        ? `You modeling ${product.name}`
-                        : product.name
-                    }
-                    className={`w-full h-auto object-contain group-hover:scale-105 transition-all duration-500 ${
-                      isTransitioning ? "opacity-90" : "opacity-100"
-                    }`}
-                    onLoad={() => handleImageLoad(product.id)}
-                  />
+                  <AspectRatio ratio={4 / 5}>
+                    <ImageWithLoading
+                      src={
+                        viewMode === "generated" && personalizedImages[product.id]
+                          ? personalizedImages[product.id]
+                          : product.image_url || "/placeholder.svg"
+                      }
+                      alt={
+                        viewMode === "generated" && personalizedImages[product.id]
+                          ? `You modeling ${product.name}`
+                          : product.name
+                      }
+                      className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${
+                        isTransitioning ? "opacity-90" : "opacity-100"
+                      }`}
+                      onLoad={() => handleImageLoad(product.id)}
+                    />
+                  </AspectRatio>
                 </div>
 
                 <div className="space-y-3">

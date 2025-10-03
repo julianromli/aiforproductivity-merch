@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -100,9 +100,17 @@ export function ImagePreviewDialog({
     setIsDragging(false)
   }
 
+  // Don't render if no image source
+  if (!imageSrc) {
+    return null
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0 bg-black/95 backdrop-blur-md">
+        {/* Hidden Dialog Title for accessibility */}
+        <DialogTitle className="sr-only">{imageAlt || "Image preview"}</DialogTitle>
+        
         {/* Close Button */}
         <Button
           onClick={onClose}
