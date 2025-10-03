@@ -14,10 +14,6 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchProducts()
-  }, [])
-
   const fetchProducts = async () => {
     try {
       setLoading(true)
@@ -26,7 +22,7 @@ export default function ProductsPage() {
 
       const data = await response.json()
       setProducts(data.products)
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Gagal memuat products",
@@ -36,6 +32,11 @@ export default function ProductsPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchProducts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="space-y-6">

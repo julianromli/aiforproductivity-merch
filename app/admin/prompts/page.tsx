@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Loader2, Plus, Pencil, Trash2, Eye, Copy, MoreVertical } from "lucide-react"
+import { Plus, Pencil, Trash2, Eye, Copy, MoreVertical } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -63,10 +63,6 @@ export default function PromptsPage() {
     is_default: false,
   })
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
   const fetchData = async () => {
     try {
       setLoading(true)
@@ -79,7 +75,7 @@ export default function PromptsPage() {
 
       setPrompts(promptsData.prompts)
       setProducts(productsData.products)
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Gagal memuat data",
@@ -89,6 +85,11 @@ export default function PromptsPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -121,7 +122,7 @@ export default function PromptsPage() {
       setDialogOpen(false)
       resetForm()
       fetchData()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Gagal menyimpan prompt",
@@ -156,7 +157,7 @@ export default function PromptsPage() {
       })
 
       fetchData()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Gagal menghapus prompt",
@@ -284,7 +285,7 @@ export default function PromptsPage() {
       ) : prompts.length === 0 ? (
         <Card>
           <CardContent className="flex h-48 flex-col items-center justify-center text-center">
-            <p className="text-muted-foreground mb-4">Belum ada prompt. Klik "Add Prompt" untuk membuat yang pertama.</p>
+            <p className="text-muted-foreground mb-4">Belum ada prompt. Klik &ldquo;Add Prompt&rdquo; untuk membuat yang pertama.</p>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create First Prompt
