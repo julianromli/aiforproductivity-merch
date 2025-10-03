@@ -538,6 +538,129 @@ const [selectedImage, setSelectedImage] = useState<{
 
 ## 📝 Recent Changes
 
+### 2025-02-03: Admin UI Overhaul - Enhanced Dashboard & Data Tables
+- ✅ **Comprehensive admin UI improvements with modern components**
+- ✅ Enhanced dashboard with analytics cards, trend indicators, quick actions
+  - Stat cards with trend badges (green/red indicators)
+  - Quick action buttons linked to common tasks
+  - Recent activity timeline with icons
+  - Responsive grid layout (4 columns → 2 → 1)
+- ✅ **Implemented TanStack Table for products with advanced features:**
+  - DataTable component: `components/admin/data-table.tsx`
+  - Column definitions: `components/admin/products/columns.tsx`
+  - Sorting, filtering, pagination (client-side)
+  - Row selection with checkboxes
+  - Column visibility toggle
+  - Skeleton loading states
+  - Empty states with clear messaging
+  - Hover effects and transitions
+- ✅ **Prompts page improvements:**
+  - 2-column grid layout with responsive design
+  - Improved card design with dropdown actions menu
+  - Enhanced preview dialog with copy-to-clipboard
+  - Skeleton loading for better perceived performance
+  - Better date formatting (Indonesian locale)
+- ✅ **New shadcn components added:**
+  - `chart` - For data visualizations (recharts integration)
+  - `form` - Form handling with react-hook-form + zod
+  - `skeleton` - Loading states
+  - `checkbox` - Row selection in tables
+- ✅ **Dependencies installed:**
+  - `@tanstack/react-table@8.21.3` - Powerful table component
+- ✅ TypeScript strict mode: Zero errors (`npx tsc --noEmit`)
+- ✅ All existing functionality maintained (no breaking changes)
+
+### Pattern: DataTable Component
+**Location:** `components/admin/data-table.tsx`
+
+```typescript
+import { DataTable } from "@/components/admin/data-table"
+import { columns } from "./columns"
+
+// Usage
+<DataTable
+  columns={columns}
+  data={products}
+  isLoading={loading}
+  searchKey="name"
+  searchPlaceholder="Search products..."
+/>
+```
+
+**Features:**
+- Generic TypeScript types for any data structure
+- Built-in search, sort, filter, pagination
+- Row selection with callbacks
+- Column visibility control
+- Loading states with skeletons
+- Empty state handling
+
+**Column Definition Pattern:**
+```typescript
+import type { ColumnDef } from "@tanstack/react-table"
+
+export const columns: ColumnDef<Product>[] = [
+  {
+    accessorKey: "name",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Name
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => <div>{row.getValue("name")}</div>,
+  },
+  // ... more columns
+]
+```
+
+### Pattern: Enhanced Stat Cards
+**Location:** `app/admin/page.tsx`
+
+```typescript
+const stats = [
+  {
+    title: "Total Products",
+    value: "12",
+    description: "Active products in catalog",
+    trend: "+2",
+    trendLabel: "from last month",
+    isPositive: true,
+    icon: Package,
+  },
+  // ... more stats
+]
+
+// Render with badges for trends
+<Badge 
+  variant="outline" 
+  className={stat.isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}
+>
+  {stat.isPositive ? <TrendingUp /> : <TrendingDown />}
+  {stat.trend}
+</Badge>
+```
+
+### Accessibility (A11y) Checklist
+- ✅ Keyboard navigation for tables, dropdowns, dialogs
+- ✅ ARIA labels on interactive elements
+- ✅ Screen reader support (`sr-only` classes)
+- ✅ Focus visible states
+- ✅ Semantic HTML structure
+- ✅ Alt text on images
+- ✅ Color contrast compliance (WCAG AA)
+
+### Theme Integration
+All components use oklch color tokens from `globals.css`:
+- Primary purple/blue: `--primary` (oklch)
+- Trend colors: green-600/400, red-600/400
+- Badges use outline variant for consistency
+- Hover effects: `hover:shadow-md`, `hover:bg-muted/50`
+- Transitions: `transition-all`, `transition-colors`
+
 ### 2025-02-03: Buy Button with External Links
 - ✅ **Implemented external purchase link functionality**
 - ✅ Database migration: Added `buy_link` column (VARCHAR 500, nullable)
