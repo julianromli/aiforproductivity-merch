@@ -36,9 +36,21 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip to main content link for accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:m-4 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
+
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden" 
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
       )}
 
       {/* Sidebar */}
@@ -47,6 +59,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           "fixed inset-y-0 left-0 z-50 w-64 transform bg-card border-r transition-transform duration-300 ease-in-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        aria-label="Admin navigation sidebar"
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
@@ -58,7 +71,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-3 py-4">
+          <nav className="flex-1 space-y-1 px-3 py-4" aria-label="Main navigation">
             {navigation.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
 
@@ -140,7 +153,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-6">{children}</main>
+        <main id="main-content" className="p-4 lg:p-6 focus:outline-none" tabIndex={-1}>
+          {children}
+        </main>
       </div>
     </div>
   )
