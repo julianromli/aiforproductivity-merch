@@ -26,8 +26,8 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const SmoothProgressBar = ({ progress, isActive }: { progress: number; isActive: boolean }) => {
   const [displayProgress, setDisplayProgress] = useState(0)
-  const animationRef = useRef<number>()
-  const startTimeRef = useRef<number>()
+  const animationRef = useRef<number | undefined>(undefined)
+  const startTimeRef = useRef<number | undefined>(undefined)
   const startProgressRef = useRef<number>(0)
 
   useEffect(() => {
@@ -404,7 +404,7 @@ export default function BananaSportswearStorefront() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <img src="https://aiforproductivity.id/wp-content/uploads/2025/06/AI-For-Productivity-Logo-e1752123757152.png" alt="AI FOR PRODUCTIVITY" className="h-10 w-auto" />
-          <p href="https://aiforproductivity.id/" className="text-xl font-bold ms-4">AI For Productivity</p>
+          <a href="https://aiforproductivity.id/" className="text-xl font-bold ms-4">AI For Productivity</a>
           </div>
 
           <nav className="hidden md:flex items-center space-x-12">

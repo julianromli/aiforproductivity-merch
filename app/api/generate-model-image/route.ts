@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { GoogleGenAI } from "@google/genai"
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 
@@ -180,16 +180,14 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Prompt preview:", prompt.substring(0, 100) + "...")
 
     console.log("[v0] Initializing Google GenAI SDK...")
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-image-preview",
-    })
+    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
 
     const base64UserPhoto = convertedUserPhoto.buffer.toString("base64")
     const base64ProductImage = convertedProductImage.buffer.toString("base64")
 
     console.log("[v0] Preparing to call generateContent with Google GenAI...")
-    const result = await model.generateContent({
+    const result = await genAI.models.generateContent({
+      model: "gemini-2.5-flash-image",
       contents: [
         {
           role: "user",
@@ -214,19 +212,18 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] generateContent completed")
 
-    const response = result.response
-    console.log("[v0] Response candidates:", response.candidates?.length || 0)
+    console.log("[v0] Response candidates:", result.candidates?.length || 0)
 
-    if (!response.candidates || response.candidates.length === 0) {
+    if (!result.candidates || result.candidates.length === 0) {
       console.log("[v0] No candidates in response")
       return NextResponse.json({ error: "No image was generated" }, { status: 500 })
     }
 
-    const candidate = response.candidates[0]
-    const parts = candidate.content.parts
+    const candidate = result.candidates[0]
+    const parts = candidate.content?.parts
     console.log("[v0] Parts in response:", parts?.length || 0)
 
-    const imagePart = parts.find((part) => part.inlineData && part.inlineData.mimeType?.startsWith("image/"))
+    const imagePart = parts?.find((part: any) => part.inlineData && part.inlineData.mimeType?.startsWith("image/"))
 
     if (!imagePart?.inlineData?.data) {
       console.log("[v0] No image data found in response")
@@ -239,12 +236,12 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Base64 image created, length:", base64Image.length)
 
     console.log("[v0] Successfully generated model image for:", productName)
-    console.log("[v0] Usage metadata:", response.usageMetadata)
+    console.log("[v0] Usage metadata:", result.usageMetadata)
 
     return NextResponse.json({
       imageUrl: base64Image,
       productName,
-      usage: response.usageMetadata,
+      usage: result.usageMetadata,
     })
   } catch (error) {
     console.error("[v0] Error in POST handler:", error)
