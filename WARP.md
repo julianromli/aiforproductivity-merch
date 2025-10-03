@@ -470,6 +470,8 @@ BLOB_READ_WRITE_TOKEN=
 **Next.js Version:** 15.5.4 (upgraded 2025-01-30)  
 **Package Manager:** pnpm
 
+**Latest Feature:** Buy button with external links (2025-02-03)
+
 ---
 
 #### 6. Image Preview Feature
@@ -535,6 +537,37 @@ const [selectedImage, setSelectedImage] = useState<{
 ---
 
 ## 📝 Recent Changes
+
+### 2025-02-03: Buy Button with External Links
+- ✅ **Implemented external purchase link functionality**
+- ✅ Database migration: Added `buy_link` column (VARCHAR 500, nullable)
+  - Script: `scripts/05-add-buy-link-column.sql`
+  - Applied via Supabase MCP
+  - Indexed for performance
+- ✅ **Backend updates:**
+  - Updated Product interface in `lib/types.ts`
+  - GET `/api/products` includes buy_link
+  - POST `/api/admin/products` accepts buy_link
+  - PUT `/api/admin/products/[id]` accepts buy_link
+- ✅ **Admin form enhancements:**
+  - Added "Buy Link" input field in product form
+  - URL validation with placeholder
+  - Helper text for external links (Tokopedia, Shopee, etc.)
+- ✅ **Frontend functionality:**
+  - Changed "ADD" button → "BUY" button
+  - onClick redirects to external link (new tab)
+  - Security: `noopener,noreferrer` attributes
+  - Alert fallback for products without buy_link
+  - Prevents image preview trigger with `stopPropagation()`
+- ✅ Files modified:
+  - `lib/types.ts` - Type definitions
+  - `app/api/products/route.ts` - Public API
+  - `app/api/admin/products/route.ts` - Admin create
+  - `app/api/admin/products/[id]/route.ts` - Admin update
+  - `components/admin/product-form.tsx` - Form input
+  - `app/page.tsx` - Frontend button & interface
+- ✅ Zero TypeScript errors
+- ✅ Full integration: Database → Backend → Admin → Frontend
 
 ### 2025-02-03: Product Image Aspect Ratio & Dialog Accessibility Fixes
 - ✅ **Implemented consistent 4:5 aspect ratio for all product images**

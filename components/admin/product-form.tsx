@@ -34,6 +34,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     category: product?.category || "",
     description: product?.description || "",
     image_url: product?.image_url || "",
+    buy_link: product?.buy_link || "",
     is_active: product?.is_active ?? true,
   })
 
@@ -234,6 +235,18 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                   placeholder="Product description..."
                   rows={4}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="buy_link">Buy Link (External URL)</Label>
+                <Input
+                  id="buy_link"
+                  type="url"
+                  value={formData.buy_link || ""}
+                  onChange={(e) => setFormData({ ...formData, buy_link: e.target.value })}
+                  placeholder="https://tokopedia.com/..."
+                />
+                <p className="text-xs text-muted-foreground">Link eksternal untuk pembelian (Tokopedia, Shopee, dll.)</p>
               </div>
             </CardContent>
           </Card>

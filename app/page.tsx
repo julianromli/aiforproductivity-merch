@@ -19,6 +19,7 @@ interface Product {
   category: string
   image_url: string
   description: string
+  buy_link: string | null
   is_active: boolean
 }
 
@@ -528,8 +529,18 @@ export default function BananaSportswearStorefront() {
                       {product.currency === "USD" ? "$" : product.currency}
                       {product.price.toFixed(2)}
                     </span>
-                    <button className="bg-primary text-primary-foreground px-6 py-2 text-xs font-medium tracking-widest uppercase cursor-pointer hover:bg-primary/90 transition-all duration-300 hover:scale-105 rounded-lg">
-                      ADD
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (product.buy_link) {
+                          window.open(product.buy_link, '_blank', 'noopener,noreferrer')
+                        } else {
+                          alert('Link pembelian belum tersedia untuk produk ini')
+                        }
+                      }}
+                      className="bg-primary text-primary-foreground px-6 py-2 text-xs font-medium tracking-widest uppercase cursor-pointer hover:bg-primary/90 transition-all duration-300 hover:scale-105 rounded-lg"
+                    >
+                      BUY
                     </button>
                   </div>
                 </div>

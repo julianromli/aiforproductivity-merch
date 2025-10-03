@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, price, currency, category, description, image_url, is_active, sort_order } = body
+    const { name, price, currency, category, description, image_url, buy_link, is_active, sort_order } = body
 
     const updateData: any = { updated_at: new Date().toISOString() }
 
@@ -39,6 +39,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (category !== undefined) updateData.category = category
     if (description !== undefined) updateData.description = description
     if (image_url !== undefined) updateData.image_url = image_url
+    if (buy_link !== undefined) updateData.buy_link = buy_link
     if (is_active !== undefined) updateData.is_active = is_active
     if (sort_order !== undefined) updateData.sort_order = sort_order
 

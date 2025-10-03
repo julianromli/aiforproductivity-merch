@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, price, currency = "USD", category, description, image_url, is_active = true, sort_order = 0 } = body
+    const { name, price, currency = "USD", category, description, image_url, buy_link, is_active = true, sort_order = 0 } = body
 
     // Validation
     if (!name || !price || !category || !image_url) {
@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
           category,
           description,
           image_url,
+          buy_link,
           is_active,
           sort_order,
         },
