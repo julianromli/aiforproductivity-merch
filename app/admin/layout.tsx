@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Toaster } from "@/components/ui/toaster"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -142,6 +143,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Page content */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
+      <Toaster />
     </div>
   )
 }

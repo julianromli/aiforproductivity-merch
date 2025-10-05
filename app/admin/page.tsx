@@ -10,8 +10,24 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { ProductsPreview } from "@/components/admin/products-preview"
+import type { Product, Category } from "@/lib/types"
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  // Fetch recent products
+  const productsResponse = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/admin/products?limit=6`,
+    { cache: "no-store" }
+  )
+  const productsData = await productsResponse.json()
+  const products: Product[] = productsData.products || []
+
+  // Fetch categories
+  const categoriesResponse = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/categories`,
+    { cache: "no-store" }
+  )
+  const categories: Category[] = await categoriesResponse.json()
   return (
     <div className="space-y-6">
       <div>
@@ -104,6 +120,9 @@ export default function AdminDashboard() {
       <div>
         <ChartAreaInteractive />
       </div>
+
+      {/* Products Preview */}
+      <ProductsPreview initialProducts={products} categories={categories} />
 
       {/* Quick Actions */}
       <Card>
