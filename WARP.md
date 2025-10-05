@@ -466,11 +466,11 @@ BLOB_READ_WRITE_TOKEN=
 
 ---
 
-**Last Updated:** 2025-02-03  
+**Last Updated:** 2025-02-05  
 **Next.js Version:** 15.5.4 (upgraded 2025-01-30)  
 **Package Manager:** pnpm
 
-**Latest Feature:** Buy button with external links (2025-02-03)
+**Latest Feature:** Hybrid parallel image generation with auto-switch (2025-02-05)
 
 ---
 
@@ -556,6 +556,11 @@ const [selectedImage, setSelectedImage] = useState<{
   - Shows active product names being generated (max 3)
   - Background indicator: "✨ 7 more in background..."
   - Smooth transitions preserved
+- ✅ **UX Behavior (Auto-Switch + Manual Control):**
+  - **Auto Mode:** Priority batch completes → Auto-switch to generated view (no user action needed)
+  - **Manual Mode:** Toggle button always available: "SHOW MY PHOTOS" ↔ "SHOW PRODUCTS"
+  - **Best of both worlds:** Instant gratification + full user control
+  - User can freely toggle between original products and generated photos anytime
 - ✅ **Performance Metrics:**
   - console.time/timeEnd tracking per batch
   - Logs: `[gen] priority` and `[gen] background` timings
