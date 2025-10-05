@@ -9,6 +9,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Upload, ShoppingBag, Heart, Search } from "lucide-react"
 import { ImageWithLoading } from "@/components/image-with-loading"
 import { ImagePreviewDialog } from "@/components/image-preview-dialog"
+import { formatCurrency } from "@/lib/utils"
 import useSWR from "swr"
 
 interface Product {
@@ -526,8 +527,7 @@ export default function BananaSportswearStorefront() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium tracking-wide">
-                      {product.currency === "USD" ? "$" : product.currency}
-                      {product.price.toFixed(2)}
+                      {formatCurrency(product.price, product.currency)}
                     </span>
                     <button 
                       onClick={(e) => {

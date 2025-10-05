@@ -538,6 +538,33 @@ const [selectedImage, setSelectedImage] = useState<{
 
 ## 📝 Recent Changes
 
+### 2025-02-05: IDR Currency Format Standardization
+- ✅ **Implemented proper IDR formatting (no decimal places)**
+- ✅ Created `formatCurrency()` utility in `lib/utils.ts`:
+  - IDR format: `Rp 100.000` (no decimals, dot thousand separator)
+  - USD/EUR format: `$10.00` or `€10.00` (with decimals)
+  - Uses `toLocaleString('id-ID')` for proper Indonesian formatting
+- ✅ **Updated all currency displays:**
+  - Storefront (`app/page.tsx`) - Product price display
+  - Admin products table (`app/admin/products/page.tsx`)
+  - Both now use `formatCurrency()` instead of manual formatting
+- ✅ **Improved admin product form:**
+  - Dynamic input step: `step="1"` for IDR, `step="0.01"` for USD/EUR
+  - Dynamic placeholder: `"100000"` for IDR, `"99.99"` for USD/EUR
+  - Helper text explaining IDR format (no decimals)
+  - Adapts automatically when currency selection changes
+- ✅ **Examples:**
+  - Before: `IDR 100000.00` or `Rp100000,00`
+  - After: `Rp 100.000` ✨
+  - Maintains regional consistency (Indonesian format)
+- ✅ Files modified:
+  - `lib/utils.ts` - New formatCurrency function
+  - `app/page.tsx` - Storefront display
+  - `app/admin/products/page.tsx` - Admin table
+  - `components/admin/product-form.tsx` - Form improvements
+- ✅ Zero TypeScript errors
+- ✅ Build successful
+
 ### 2025-02-03: Buy Button with External Links
 - ✅ **Implemented external purchase link functionality**
 - ✅ Database migration: Added `buy_link` column (VARCHAR 500, nullable)

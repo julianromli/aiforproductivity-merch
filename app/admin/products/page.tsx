@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Pencil, Trash2, Loader2 } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 import type { Product } from "@/lib/types"
 import {
   AlertDialog,
@@ -191,7 +192,7 @@ export default function ProductsPage() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>
-                    {product.currency} {product.price.toFixed(2)}
+                    {formatCurrency(product.price, product.currency)}
                   </TableCell>
                   <TableCell>
                     <Badge

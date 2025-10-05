@@ -181,12 +181,17 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                   <Input
                     id="price"
                     type="number"
-                    step="0.01"
+                    step={formData.currency === "IDR" ? "1" : "0.01"}
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="99.99"
+                    placeholder={formData.currency === "IDR" ? "100000" : "99.99"}
                     required
                   />
+                  {formData.currency === "IDR" && (
+                    <p className="text-xs text-muted-foreground">
+                      Format: tanpa desimal (contoh: 100000 untuk Rp 100.000)
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
