@@ -24,6 +24,9 @@ interface Product {
   is_active: boolean
 }
 
+type GenerationStatus = 'pending' | 'generating' | 'ready' | 'error'
+type ProductStatusMap = Record<string, GenerationStatus>
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const SmoothProgressBar = ({ progress, isActive }: { progress: number; isActive: boolean }) => {
@@ -106,6 +109,19 @@ export default function BananaSportswearStorefront() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [currentProductName, setCurrentProductName] = useState("")
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null)
+  
+  // Hybrid parallel generation state
+  const [readyCount, setReadyCount] = useState(0)
+  const [totalCount, setTotalCount] = useState(0)
+  const [isPriorityBatchDone, setIsPriorityBatchDone] = useState(false)
+  const [backgroundInProgress, setBackgroundInProgress] = useState(false)
+  const [productStatus, setProductStatus] = useState<ProductStatusMap>({})
+  const [inFlightNames, setInFlightNames] = useState<string[]>([])
+  
+  // Refs for race condition guards and abort controllers
+  const generationRunIdRef = useRef<number>(0)
+  const controllersRef = useRef<Map<string, AbortController>>(new Map())
+  const didAutoSwitchRef = useRef(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -113,6 +129,26 @@ export default function BananaSportswearStorefront() {
     }, 100)
     return () => clearTimeout(timer)
   }, [])
+  
+  // Cleanup on unmount: abort all controllers
+  useEffect(() => {
+    return () => {
+      controllersRef.current.forEach(c => {
+        try {
+          c.abort()
+        } catch {}
+      })
+      controllersRef.current.clear()
+    }
+  }, [])
+  
+  // Derived values for UI
+  const progressPercent = Math.round((readyCount / Math.max(1, totalCount)) * 100)
+  const progressText = `${readyCount} of ${totalCount} ready`
+  const displayProductName = inFlightNames.length > 0
+    ? inFlightNames.slice(0, 3).join(', ') + (inFlightNames.length > 3 ? ` +${inFlightNames.length - 3} more` : '')
+    : currentProductName
+  const showBackgroundIndicator = isPriorityBatchDone && readyCount < totalCount
 
   const handleImageLoad = (productId: string) => {
     setLoadedImages((prev) => new Set([...prev, productId]))
@@ -148,145 +184,203 @@ export default function BananaSportswearStorefront() {
     setIsPersonalized(false)
     setPersonalizedImages({})
     setViewMode("products")
+    didAutoSwitchRef.current = false
     setTimeout(() => {
       generatePersonalizedImagesWithFile(file)
     }, 100)
   }
+  
+  // Helper: abort all controllers
+  const abortAllControllers = () => {
+    controllersRef.current.forEach(c => {
+      try {
+        c.abort()
+      } catch {}
+    })
+    controllersRef.current.clear()
+  }
+  
+  // Helper: timeout wrapper
+  function withTimeout<T>(p: Promise<T>, ms: number, onTimeout?: () => void): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const id = setTimeout(() => {
+        onTimeout?.()
+        reject(new Error('timeout'))
+      }, ms)
+      p.then(v => { clearTimeout(id); resolve(v) })
+       .catch(err => { clearTimeout(id); reject(err) })
+    })
+  }
+  
+  // Helper: Generate single product
+  const runProductGeneration = async (
+    product: Product,
+    file: File,
+    runId: number
+  ): Promise<{ success: boolean; url?: string; productId: string }> => {
+    const guard = () => runId !== generationRunIdRef.current
+    
+    setProductStatus(prev => ({ ...prev, [product.id]: 'generating' }))
+    setInFlightNames(prev => Array.from(new Set([...prev, product.name])))
+    
+    const controller = new AbortController()
+    controllersRef.current.set(product.id, controller)
+    
+    try {
+      console.log(`[gen] Starting generation for product: ${product.name} (ID: ${product.id}, runId: ${runId})`)
+      
+      // Fetch product image
+      const productImageResponse = await fetch(product.image_url)
+      if (!productImageResponse.ok) {
+        throw new Error(`Failed to fetch product image for ${product.name}`)
+      }
+      
+      const productImageBlob = await productImageResponse.blob()
+      const productImageFile = new File([productImageBlob], `${product.id}.jpg`, {
+        type: productImageBlob.type,
+      })
+      
+      const formData = new FormData()
+      formData.append("userPhoto", file)
+      formData.append("productImage", productImageFile)
+      formData.append("productName", product.name)
+      formData.append("productCategory", product.category)
+      formData.append("productId", product.id)
+      
+      // Call API with 60s timeout
+      const response = await withTimeout(
+        fetch("/api/generate-model-image", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        }),
+        60000,
+        () => controller.abort()
+      )
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Failed to generate image for ${product.name}: ${response.status} - ${errorText}`)
+      }
+      
+      const data = await response.json()
+      
+      if (!data.imageUrl) {
+        throw new Error(`No image URL returned for ${product.name}`)
+      }
+      
+      if (guard()) return { success: false, productId: product.id }
+      
+      setPersonalizedImages(prev => ({ ...prev, [product.id]: data.imageUrl }))
+      setReadyCount(prev => prev + 1)
+      setProductStatus(prev => ({ ...prev, [product.id]: 'ready' }))
+      console.log(`[gen] Success: ${product.name} (runId: ${runId})`)
+      
+      return { success: true, url: data.imageUrl, productId: product.id }
+    } catch (err) {
+      if (guard()) return { success: false, productId: product.id }
+      
+      console.error(`[gen] Error for ${product.name}:`, err)
+      
+      // Fallback to original image
+      setPersonalizedImages(prev => ({ ...prev, [product.id]: product.image_url }))
+      setReadyCount(prev => prev + 1)
+      setProductStatus(prev => ({ ...prev, [product.id]: 'error' }))
+      
+      return { success: false, productId: product.id }
+    } finally {
+      controllersRef.current.delete(product.id)
+      if (!guard()) {
+        setInFlightNames(prev => prev.filter(n => n !== product.name))
+      }
+    }
+  }
 
   const generatePersonalizedImagesWithFile = async (file: File) => {
+    const runId = Date.now()
+    generationRunIdRef.current = runId
+    
+    // Abort any ongoing generations
+    abortAllControllers()
+    
+    const total = products.length
+    
+    // Reset state
     setIsGenerating(true)
-    setGenerationProgress(0)
-    setCurrentProductIndex(0)
+    setTotalCount(total)
+    setReadyCount(0)
+    setIsPriorityBatchDone(false)
+    setBackgroundInProgress(false)
+    setProductStatus(Object.fromEntries(products.map(p => [p.id, 'pending'])))
+    setInFlightNames([])
     setShowGallery(false)
     setIsTransitioning(false)
-    const newPersonalizedImages: { [key: string]: string } = {}
-
-    try {
-      for (let i = 0; i < products.length; i++) {
-        const product = products[i]
-        setCurrentProductIndex(i)
-        setCurrentProductName(product.name)
-
-        console.log(`[v0] Starting generation for product: ${product.name} (ID: ${product.id})`)
-
-        const baseProgress = (i / products.length) * 100
-        const targetProgress = ((i + 1) / products.length) * 100
-
-        const animateProgress = (startProgress: number, endProgress: number, duration: number) => {
-          return new Promise<void>((resolve) => {
-            const startTime = Date.now()
-            const updateInterval = 8
-
-            const updateProgress = () => {
-              const elapsed = Date.now() - startTime
-              const progress = Math.min(elapsed / duration, 1)
-
-              const easeInOutCubic = (t: number) => {
-                if (t < 0.5) {
-                  return 4 * t * t * t
-                } else {
-                  return 1 - Math.pow(-2 * t + 2, 3) / 2
-                }
-              }
-
-              const easedProgress = easeInOutCubic(progress)
-              const currentProgress = startProgress + (endProgress - startProgress) * easedProgress
-              setGenerationProgress(currentProgress)
-
-              if (progress < 1) {
-                setTimeout(() => requestAnimationFrame(updateProgress), updateInterval)
-              } else {
-                resolve()
-              }
-            }
-
-            requestAnimationFrame(updateProgress)
-          })
-        }
-
-        const progressPromise = animateProgress(baseProgress, targetProgress, 4000)
-
-        try {
-          const productImageResponse = await fetch(product.image_url)
-          if (!productImageResponse.ok) {
-            throw new Error(`Failed to fetch product image for ${product.name}`)
-          }
-
-          const productImageBlob = await productImageResponse.blob()
-          const productImageFile = new File([productImageBlob], `${product.id}.jpg`, {
-            type: productImageBlob.type,
-          })
-
-          const formData = new FormData()
-          formData.append("userPhoto", file)
-          formData.append("productImage", productImageFile)
-          formData.append("productName", product.name)
-          formData.append("productCategory", product.category)
-          formData.append("productId", product.id)
-
-          console.log(`[v0] Sending request for ${product.name}...`)
-
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 60000)
-
-          const response = await fetch("/api/generate-model-image", {
-            method: "POST",
-            body: formData,
-            signal: controller.signal,
-          })
-
-          clearTimeout(timeoutId)
-
-          if (!response.ok) {
-            const errorText = await response.text()
-            throw new Error(`Failed to generate image for ${product.name}: ${response.status} - ${errorText}`)
-          }
-
-          const data = await response.json()
-
-          if (!data.imageUrl) {
-            throw new Error(`No image URL returned for ${product.name}`)
-          }
-
-          newPersonalizedImages[product.id] = data.imageUrl
-          console.log(`[v0] Successfully generated image for ${product.name}: ${data.imageUrl.substring(0, 50)}...`)
-        } catch (productError) {
-          console.error(`[v0] Error generating image for ${product.name}:`, productError)
-          newPersonalizedImages[product.id] = product.image_url
-        }
-
-        await progressPromise
-      }
-
-      console.log("[v0] Final personalized images:", Object.keys(newPersonalizedImages))
-
-      const generatedCount = Object.values(newPersonalizedImages).filter((url) => url.startsWith("data:")).length
-      console.log(`[v0] Successfully generated ${generatedCount} out of ${products.length} images`)
-
-      setPersonalizedImages(newPersonalizedImages)
-      setIsPersonalized(generatedCount > 0)
-
-      setTimeout(() => {
-        setIsTransitioning(true)
-        setTimeout(() => {
-          setViewMode("generated")
-          setTimeout(() => {
-            setIsTransitioning(false)
-            setTimeout(() => {
-              setShowGallery(true)
-            }, 300)
-          }, 200)
-        }, 200)
-      }, 300)
-    } catch (error) {
-      console.error("[v0] Error in generatePersonalizedImagesWithFile:", error)
-      alert(
-        `Failed to generate personalized images: ${error instanceof Error ? error.message : "Unknown error"}. Please try again.`,
-      )
-    } finally {
+    setGenerationProgress(0)
+    
+    console.log(`[gen] Start runId=${runId}, total=${total} products`)
+    console.time('[gen] priority')
+    console.time('[gen] background')
+    
+    if (total === 0) {
       setIsGenerating(false)
-      setGenerationProgress(0)
+      return
     }
+    
+    const priority = products.slice(0, 3)
+    const background = products.slice(3)
+    
+    // Start PRIORITY batch (first 3 products in parallel)
+    const priorityPromises = priority.map(p => runProductGeneration(p, file, runId))
+    
+    // Start BACKGROUND batch (remaining products in parallel)
+    const bgPromises = background.map(p => runProductGeneration(p, file, runId))
+    if (background.length > 0) setBackgroundInProgress(true)
+    
+    // Auto-switch after priority batch settles
+    void Promise.allSettled(priorityPromises).then(() => {
+      if (runId !== generationRunIdRef.current) return
+      
+      console.timeEnd('[gen] priority')
+      setIsPriorityBatchDone(true)
+      
+      // Auto-switch to generated view
+      if (!didAutoSwitchRef.current) {
+        didAutoSwitchRef.current = true
+        console.log('[gen] Priority done, auto-switching to generated view')
+        
+        setTimeout(() => {
+          setIsTransitioning(true)
+          setTimeout(() => {
+            setViewMode("generated")
+            setTimeout(() => {
+              setIsTransitioning(false)
+              setTimeout(() => {
+                setShowGallery(true)
+              }, 300)
+            }, 200)
+          }, 200)
+        }, 300)
+      }
+      
+      const successCount = priorityPromises.filter((p: any) => p.status === 'fulfilled').length
+      console.log(`[gen] Priority batch: ${successCount}/${priority.length} succeeded`)
+    })
+    
+    // Background batch completion
+    void Promise.allSettled(bgPromises).then(() => {
+      if (runId !== generationRunIdRef.current) return
+      
+      console.timeEnd('[gen] background')
+      setBackgroundInProgress(false)
+      setIsGenerating(false)
+      
+      const allResults = Object.values(productStatus)
+      const readyResults = allResults.filter(s => s === 'ready').length
+      const errorResults = allResults.filter(s => s === 'error').length
+      
+      setIsPersonalized(readyResults > 0)
+      console.log(`[gen] All done: ${readyResults} ready, ${errorResults} errors, runId=${runId}`)
+    })
   }
 
   if (productsError) {
@@ -346,13 +440,18 @@ export default function BananaSportswearStorefront() {
             </>
           ) : isGenerating ? (
             <>
-              <SmoothProgressBar progress={generationProgress} isActive={isGenerating} />
+              <SmoothProgressBar progress={progressPercent} isActive={isGenerating} />
               <p className="text-xs text-muted-foreground font-sans tracking-wider animate-pulse mb-3 font-medium">
-                {Math.round(generationProgress)}% COMPLETE
+                {progressText}
               </p>
               <h3 className="text-xs font-medium mb-4 tracking-wide animate-pulse transition-all duration-500 text-foreground">
-                Generating image for {currentProductName}
+                {displayProductName ? `Generating: ${displayProductName}` : 'Generating images...'}
               </h3>
+              {showBackgroundIndicator && (
+                <p className="text-xs text-muted-foreground font-sans tracking-wider mb-2">
+                  ✨ {totalCount - readyCount} more in background...
+                </p>
+              )}
               <div className="flex justify-center mt-3 space-x-1">
                 <div
                   className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce shadow-sm"
