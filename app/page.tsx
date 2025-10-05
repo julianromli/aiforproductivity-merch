@@ -472,22 +472,23 @@ export default function BananaSportswearStorefront() {
               <Upload className="w-6 h-6 mx-auto mb-3 text-muted-foreground animate-pulse" />
               <h3 className="text-xs font-medium mb-2 tracking-wide animate-fade-in">PHOTOS GENERATED!</h3>
               <p className="text-xs text-muted-foreground font-sans tracking-wider mb-3 animate-fade-in">
-                Drop a new photo to generate fresh samples
+                {viewMode === "generated" 
+                  ? "Viewing your personalized photos"
+                  : "Drop a new photo to generate fresh samples"
+                }
               </p>
-              <Button
-                onClick={() => {
-                  const newMode = viewMode === "products" ? "generated" : "products"
-                  setViewMode(newMode)
-                  if (newMode === "generated") {
-                    setTimeout(() => setShowGallery(true), 300)
-                  } else {
+              {viewMode === "generated" && (
+                <Button
+                  onClick={() => {
+                    setViewMode("products")
                     setShowGallery(false)
-                  }
-                }}
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border-0 text-xs font-medium tracking-widest uppercase px-4 py-2 mb-2 transition-all duration-300 hover:scale-105"
-              >
-                {viewMode === "products" ? "SHOW MY PHOTOS" : "SHOW PRODUCTS"}
-              </Button>
+                  }}
+                  variant="outline"
+                  className="w-full border-border hover:bg-accent text-xs font-medium tracking-widest uppercase px-4 py-2 mb-2 transition-all duration-300 hover:scale-105"
+                >
+                  SHOW ORIGINAL PRODUCTS
+                </Button>
+              )}
             </>
           )}
         </div>
