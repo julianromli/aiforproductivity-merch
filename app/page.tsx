@@ -409,21 +409,6 @@ export default function BananaSportswearStorefront() {
           <a href="https://aiforproductivity.id/" className="text-xl font-bold ms-4">AI For Productivity</a>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-12">
-            {["New", "Men", "Women", "Kids"].map((item, index) => (
-              <a
-                key={item}
-                href="#"
-                className={`text-foreground hover:text-muted-foreground text-md font-bold transition-all duration-500 ${
-                  isPageLoaded ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
-                }`}
-                style={{ transitionDelay: `${200 + index * 100}ms` }}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-
           <div
             className={`flex items-center space-x-6 transition-all duration-700 ${
               isPageLoaded ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
