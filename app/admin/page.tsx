@@ -12,23 +12,53 @@ import {
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { ProductsPreview } from "@/components/admin/products-preview"
 import type { Product, Category } from "@/lib/types"
+import { createClient } from "@supabase/supabase-js"
+
+// Create Supabase client for server-side data fetching
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export default async function AdminDashboard() {
-  // Fetch recent products
-  const productsResponse = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/admin/products?limit=6`,
-    { cache: "no-store" }
-  )
-  const productsData = await productsResponse.json()
-  const products: Product[] = productsData.products || []
+  let products: Product[] = []
+  let categories: Category[] = []
 
-  // Fetch categories
-  const categoriesResponse = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/categories`,
-    { cache: "no-store" }
-  )
-  const categoriesData = await categoriesResponse.json()
-  const categories: Category[] = categoriesData.categories || []
+  // Fetch recent products directly from Supabase
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(6)
+
+    if (error) {
+      console.error('[v0] Dashboard: Supabase error fetching products:', error)
+    } else {
+      products = (data || []) as Product[]
+      console.log('[v0] Dashboard: Fetched products:', products.length)
+    }
+  } catch (error) {
+    console.error('[v0] Dashboard: Error fetching products:', error)
+  }
+
+  // Fetch categories directly from Supabase
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, slug')
+      .order('name', { ascending: true })
+
+    if (error) {
+      console.error('[v0] Dashboard: Supabase error fetching categories:', error)
+    } else {
+      categories = (data || []) as Category[]
+      console.log('[v0] Dashboard: Fetched categories:', categories.length)
+    }
+  } catch (error) {
+    console.error('[v0] Dashboard: Error fetching categories:', error)
+  }
   return (
     <div className="space-y-6">
       <div>
