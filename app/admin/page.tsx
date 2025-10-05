@@ -1,5 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, MessageSquare, TrendingUp } from "lucide-react"
+import { IconPackage, IconMessages, IconSparkles, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react"
+import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 
 export default function AdminDashboard() {
   return (
@@ -9,49 +19,104 @@ export default function AdminDashboard() {
         <p className="text-muted-foreground">Overview produk dan prompt management</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium text-sm">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+      {/* Enhanced Stats Cards */}
+      <div className="@container grid grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-3">
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription className="flex items-center gap-2">
+              <IconPackage className="h-4 w-4" />
+              Total Products
+            </CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              12
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                <IconTrendingUp className="h-3 w-3" />
+                +16.7%
+              </Badge>
+            </CardAction>
           </CardHeader>
-          <CardContent>
-            <div className="font-bold text-2xl">12</div>
-            <p className="text-muted-foreground text-xs">+2 dari bulan lalu</p>
-          </CardContent>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Growing steadily <IconTrendingUp className="size-4" />
+            </div>
+            <div className="text-muted-foreground">
+              +2 produk dari bulan lalu
+            </div>
+          </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium text-sm">Active Prompts</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription className="flex items-center gap-2">
+              <IconMessages className="h-4 w-4" />
+              Active Prompts
+            </CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              8
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                <IconTrendingUp className="h-3 w-3" />
+                +33%
+              </Badge>
+            </CardAction>
           </CardHeader>
-          <CardContent>
-            <div className="font-bold text-2xl">8</div>
-            <p className="text-muted-foreground text-xs">6 custom, 2 default</p>
-          </CardContent>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Prompt library expanding <IconTrendingUp className="size-4" />
+            </div>
+            <div className="text-muted-foreground">
+              6 custom, 2 default prompts
+            </div>
+          </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium text-sm">AI Generations</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription className="flex items-center gap-2">
+              <IconSparkles className="h-4 w-4" />
+              AI Generations
+            </CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              234
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                <IconTrendingUp className="h-3 w-3" />
+                +18%
+              </Badge>
+            </CardAction>
           </CardHeader>
-          <CardContent>
-            <div className="font-bold text-2xl">234</div>
-            <p className="text-muted-foreground text-xs">+18% dari minggu lalu</p>
-          </CardContent>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              High engagement <IconTrendingUp className="size-4" />
+            </div>
+            <div className="text-muted-foreground">
+              +18% dari minggu lalu
+            </div>
+          </CardFooter>
         </Card>
+      </div>
+
+      {/* Interactive Chart */}
+      <div>
+        <ChartAreaInteractive />
       </div>
 
       {/* Quick Actions */}
       <Card>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>
+            Manajemen cepat untuk produk dan prompt
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
-          <p className="text-muted-foreground text-sm">Gunakan menu di sidebar untuk mengelola products dan prompts.</p>
+          <p className="text-muted-foreground text-sm">
+            Gunakan menu di sidebar untuk mengelola products dan prompts. Dashboard menampilkan statistik real-time dari aktivitas AI generation.
+          </p>
         </CardContent>
       </Card>
     </div>
