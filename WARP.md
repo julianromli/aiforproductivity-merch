@@ -538,6 +538,33 @@ const [selectedImage, setSelectedImage] = useState<{
 
 ## 📝 Recent Changes
 
+### 2025-02-05: SEO Metadata Optimization & Documentation Updates
+- ✅ **Fixed metadata in `app/layout.tsx` for proper SEO:**
+  - Title: "AI For Productivity Merchandise - Official Merch Store" (was: "v0 App")
+  - Description: Compelling, keyword-rich description (was: "Created with v0")
+  - Added keywords array: "AI for productivity", "productivity merchandise", etc.
+  - Open Graph tags for Facebook/LinkedIn sharing
+  - Twitter Card metadata for proper social media previews
+  - Robots directives for search engine indexing
+  - Author/creator metadata linking to https://aiforproductivity.id
+  - Indonesian locale (id_ID) for regional optimization
+- ✅ **Documentation updates:**
+  - README.md: Complete rewrite with proper branding, features, tech stack
+  - AGENTS.md: Created comprehensive guide for AI agents
+  - WARP.md: Updated recent changes section
+- ✅ **SEO Benefits:**
+  - Google will properly index site with correct title & description
+  - Social media sharing shows professional preview with logo
+  - Targeted keywords for organic search traffic
+  - Brand consistency across all metadata
+- ✅ Files modified:
+  - `app/layout.tsx` - Metadata object completely rewritten
+  - `README.md` - Professional project documentation
+  - `AGENTS.md` - AI agent configuration (new file)
+  - `WARP.md` - Updated changelog
+- ✅ Zero TypeScript errors
+- ✅ Branding confirmed: "AI For Productivity Merchandise"
+
 ### 2025-02-05: Hybrid Parallel Image Generation (Performance Optimization)
 - ✅ **Implemented hybrid lazy loading strategy for AI image generation**
 - ✅ **Strategy: Priority Batch (3) + Background Parallel**
