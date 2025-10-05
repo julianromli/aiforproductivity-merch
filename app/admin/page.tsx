@@ -27,7 +27,8 @@ export default async function AdminDashboard() {
     `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/categories`,
     { cache: "no-store" }
   )
-  const categories: Category[] = await categoriesResponse.json()
+  const categoriesData = await categoriesResponse.json()
+  const categories: Category[] = categoriesData.categories || []
   return (
     <div className="space-y-6">
       <div>

@@ -538,6 +538,48 @@ const [selectedImage, setSelectedImage] = useState<{
 
 ## 📝 Recent Changes
 
+### 2025-02-05: Products Preview with Quick Edit on Dashboard
+- ✅ **Added products preview section to admin dashboard**
+- ✅ **ProductsPreview component** (`components/admin/products-preview.tsx`):
+  - Client component with interactive edit functionality
+  - Displays 6 recent products in responsive grid (2 cols mobile, 3 cols desktop)
+  - Product cards with image (AspectRatio 4:5), name, price, category, status badge
+  - Quick Edit button per product
+  - Empty state with call-to-action link
+  - "View All" button linking to full products page
+- ✅ **Quick Edit Dialog:**
+  - Essential fields: name, price, currency, category, image_url, is_active
+  - Form validation (required fields, price > 0)
+  - Switch component for active/inactive toggle
+  - Dynamic currency handling (IDR with step="1", USD/EUR with step="0.01")
+  - Loading states during update
+  - Success/error toast notifications
+  - Uses existing PUT /api/admin/products/[id] endpoint
+- ✅ **Dashboard Integration:**
+  - Server component fetches recent products (limit 6) and categories
+  - ProductsPreview positioned between chart and quick actions
+  - Preserves existing dashboard features (stats cards, chart)
+  - No-cache strategy for always fresh data
+- ✅ **New Components Installed:**
+  - `components/ui/switch.tsx` - Toggle switch (shadcn)
+  - `components/ui/toaster.tsx` - Toast notifications renderer
+  - Toaster added to admin layout for global toast support
+- ✅ **UX Improvements:**
+  - Direct product editing from dashboard (no page navigation)
+  - Fast access to recent products for admin
+  - Mobile-friendly responsive design
+  - Proper loading & error states
+  - Visual feedback via toasts
+- ✅ Files modified:
+  - `app/admin/page.tsx` - Server component with data fetching
+  - `app/admin/layout.tsx` - Added Toaster component
+  - `components/admin/products-preview.tsx` - New component
+  - `components/ui/switch.tsx` - New shadcn component
+  - `components/ui/toaster.tsx` - New toast renderer
+- ✅ Zero TypeScript errors, build successful
+- ✅ All existing features preserved
+- ✅ Ready for Playwright testing
+
 ### 2025-02-05: Admin Dashboard UI Upgrade (shadcn dashboard-01)
 - ✅ **Upgraded admin dashboard with shadcn dashboard-01 block components**
 - ✅ **Installed components via shadcn CLI:**
