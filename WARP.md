@@ -538,6 +538,48 @@ const [selectedImage, setSelectedImage] = useState<{
 
 ## 📝 Recent Changes
 
+### 2025-02-05: Admin Dashboard UI Upgrade (shadcn dashboard-01)
+- ✅ **Upgraded admin dashboard with shadcn dashboard-01 block components**
+- ✅ **Installed components via shadcn CLI:**
+  - Interactive chart components (recharts integration)
+  - Advanced UI components: sidebar, drawer, tabs, toggle-group
+  - Supporting components: avatar, breadcrumb, skeleton, sonner
+  - Total: 26 new component files
+- ✅ **Enhanced stats cards:**
+  - Gradient backgrounds (`from-primary/5 to-card`)
+  - Badge indicators with trend icons (IconTrendingUp)
+  - CardAction, CardDescription, CardFooter for richer content
+  - Responsive container queries (`@container/card`)
+  - Better visual hierarchy with proper spacing
+- ✅ **Added ChartAreaInteractive component:**
+  - Interactive area chart with time range filters (7d, 30d, 90d)
+  - Desktop/mobile responsive toggle buttons
+  - Real-time data visualization placeholder
+  - Built-in chart tooltip & legend
+- ✅ **Icon library transition:**
+  - Switched from lucide-react to @tabler/icons-react for consistency
+  - Icons used: IconPackage, IconMessages, IconSparkles, IconTrendingUp
+- ✅ **Dashboard data structure:**
+  - Full dashboard-01 example installed at `app/dashboard/`
+  - Includes sample data table with drag-and-drop sorting
+  - Sidebar navigation components (nav-main, nav-documents, nav-secondary)
+  - Can be used as reference for future admin features
+- ✅ **Preserved existing admin layout:**
+  - Did NOT replace existing sidebar/header (kept current admin layout)
+  - Only integrated chart & enhanced cards into dashboard page content
+  - Maintains authentication & navigation structure
+- ✅ Files modified:
+  - `app/admin/page.tsx` - Dashboard page with new components
+  - `app/globals.css` - Updated CSS variables for chart theming
+  - `package.json`, `pnpm-lock.yaml` - New dependencies
+- ✅ New components:
+  - `components/chart-area-interactive.tsx` - Interactive chart
+  - `components/ui/chart.tsx` - Chart container & config
+  - `components/ui/tabs.tsx`, `toggle-group.tsx`, etc.
+  - `hooks/use-mobile.ts` - Mobile detection hook
+- ✅ Zero TypeScript errors, build successful
+- ✅ Ready for future data integration (replace static data with real DB queries)
+
 ### 2025-02-05: SEO Metadata Optimization & Documentation Updates
 - ✅ **Fixed metadata in `app/layout.tsx` for proper SEO:**
   - Title: "AI For Productivity Merchandise - Official Merch Store" (was: "v0 App")
