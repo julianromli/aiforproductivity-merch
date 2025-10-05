@@ -1,12 +1,13 @@
 # AGENTS.md - AI For Productivity Merch Store
 
 ## Project Overview
-Next.js 15 e-commerce storefront built with v0.app, featuring Supabase backend and ShadCN UI components.
+Next.js 15 e-commerce storefront built with v0.app, featuring Supabase backend, ShadCN UI, and AI-powered personalized product image generation using Google Gemini 2.5 Flash.
 
 ## Tech Stack
 - **Framework**: Next.js 15.5.4 (App Router, RSC)
 - **UI**: ShadCN (New York style) + Radix UI + Tailwind CSS 4
 - **Database**: Supabase (PostgreSQL + Auth + Storage)
+- **AI**: Google Gemini 2.5 Flash (Image Generation)
 - **Language**: TypeScript 5
 - **State**: React Hook Form + Zod validation
 - **Deployment**: Vercel
@@ -125,6 +126,13 @@ Commit types: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`
 3. Use CSS variables from ShadCN theme
 4. Test dark mode if applicable
 
+### AI Image Generation Debugging
+1. Check console logs with `[gen]` prefix for detailed progress
+2. Monitor concurrency limits (Priority: 3, Background: 2)
+3. Verify retry mechanism for timeout/network errors
+4. Review `DEBUG_IMAGE_GENERATION.md` for full debugging guide
+5. Expected success rate: 90%+ (with automatic retry & fallback)
+
 ## Important Notes
 
 ⚠️ **Type Checking Disabled in Build**
@@ -139,6 +147,18 @@ Commit types: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`
 - Supabase operations → Supabase MCP
 - ShadCN components → ShadCN MCP
 - Don't hardcode SQL or manually install components
+
+⚠️ **AI Image Generation**
+- Concurrency limited: Priority batch (3), Background batch (2)
+- Auto-retry for timeout/network errors (max 1 retry)
+- 90s timeout per generation request
+- Detailed logging with `[gen]` prefix in console
+- See `DEBUG_IMAGE_GENERATION.md` for troubleshooting
+
+## Debugging Resources
+- **Image Generation**: See `DEBUG_IMAGE_GENERATION.md` for detailed troubleshooting guide
+- **Console Logs**: Filter by `[gen]` prefix for generation progress
+- **Error Tracking**: Check browser console for retry attempts and failure reasons
 
 ## Links
 - **Deployment**: https://vercel.com/faiz-intifadas-projects-666b7de0/v0-storefront-w-nano-banana-ai-s

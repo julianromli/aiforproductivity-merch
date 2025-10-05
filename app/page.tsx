@@ -214,10 +214,12 @@ export default function BananaSportswearStorefront() {
   
   // Helper: Generate single product
   const runProductGeneration = async (
-    product: Product,
-    file: File,
-    runId: number
-  ): Promise<{ success: boolean; url?: string; productId: string }> => {
+    product: Product, 
+    file: File, 
+    runId: number, 
+    retryCount = 0
+  ): Promise<{ success: boolean; url?: string; productId: string; cancelled?: boolean; error?: string; isTimeout?: boolean; isNetworkError?: boolean }> => {
+    const MAX_RETRIES = 1
     const guard = () => runId !== generationRunIdRef.current
     
     setProductStatus(prev => ({ ...prev, [product.id]: 'generating' }))
@@ -227,18 +229,21 @@ export default function BananaSportswearStorefront() {
     controllersRef.current.set(product.id, controller)
     
     try {
-      console.log(`[gen] Starting generation for product: ${product.name} (ID: ${product.id}, runId: ${runId})`)
+      const retryText = retryCount > 0 ? ` (retry ${retryCount}/${MAX_RETRIES})` : ''
+      console.log(`[gen] Starting generation for product: ${product.name} (ID: ${product.id}, runId: ${runId})${retryText}`)
       
       // Fetch product image
+      console.log(`[gen] Fetching product image for ${product.name}...`)
       const productImageResponse = await fetch(product.image_url)
       if (!productImageResponse.ok) {
-        throw new Error(`Failed to fetch product image for ${product.name}`)
+        throw new Error(`Failed to fetch product image for ${product.name}: ${productImageResponse.status}`)
       }
       
       const productImageBlob = await productImageResponse.blob()
       const productImageFile = new File([productImageBlob], `${product.id}.jpg`, {
         type: productImageBlob.type,
       })
+      console.log(`[gen] Product image fetched successfully for ${product.name} (${productImageBlob.size} bytes)`)
       
       const formData = new FormData()
       formData.append("userPhoto", file)
@@ -247,53 +252,114 @@ export default function BananaSportswearStorefront() {
       formData.append("productCategory", product.category)
       formData.append("productId", product.id)
       
-      // Call API with 60s timeout
+      // Call API with 90s timeout (increased for better stability)
+      console.log(`[gen] Calling AI generation API for ${product.name}...`)
       const response = await withTimeout(
         fetch("/api/generate-model-image", {
           method: "POST",
           body: formData,
           signal: controller.signal,
         }),
-        60000,
+        90000,
         () => controller.abort()
       )
       
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Failed to generate image for ${product.name}: ${response.status} - ${errorText}`)
+        console.error(`[gen] API error for ${product.name}: ${response.status} - ${errorText}`)
+        throw new Error(`API returned ${response.status}: ${errorText}`)
       }
       
       const data = await response.json()
       
       if (!data.imageUrl) {
-        throw new Error(`No image URL returned for ${product.name}`)
+        console.error(`[gen] No image URL in response for ${product.name}`, data)
+        throw new Error(`No image URL returned`)
       }
       
-      if (guard()) return { success: false, productId: product.id }
+      if (guard()) {
+        console.log(`[gen] Generation cancelled for ${product.name} (runId changed)`)
+        return { success: false, productId: product.id, cancelled: true }
+      }
       
       setPersonalizedImages(prev => ({ ...prev, [product.id]: data.imageUrl }))
       setReadyCount(prev => prev + 1)
       setProductStatus(prev => ({ ...prev, [product.id]: 'ready' }))
-      console.log(`[gen] Success: ${product.name} (runId: ${runId})`)
+      console.log(`[gen] ✅ Success: ${product.name} (runId: ${runId}) - Image length: ${data.imageUrl.length}`)
       
       return { success: true, url: data.imageUrl, productId: product.id }
     } catch (err) {
-      if (guard()) return { success: false, productId: product.id }
+      if (guard()) {
+        console.log(`[gen] Error ignored for ${product.name} (runId changed)`)
+        return { success: false, productId: product.id, cancelled: true }
+      }
       
-      console.error(`[gen] Error for ${product.name}:`, err)
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      const isTimeout = errorMessage.includes('timeout') || errorMessage.includes('aborted')
+      const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('network')
       
-      // Fallback to original image
+      console.error(`[gen] ❌ Error for ${product.name}:`, {
+        error: errorMessage,
+        isTimeout,
+        isNetworkError,
+        retryCount
+      })
+      
+      // Retry logic for timeout or network errors
+      if (retryCount < MAX_RETRIES && (isTimeout || isNetworkError)) {
+        console.log(`[gen] 🔄 Retrying ${product.name} (${retryCount + 1}/${MAX_RETRIES})...`)
+        // Clean up controller before retry
+        controllersRef.current.delete(product.id)
+        // Wait a bit before retry
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        return runProductGeneration(product, file, runId, retryCount + 1)
+      }
+      
+      // Fallback to original image after all retries failed
+      console.log(`[gen] 📸 Using fallback image for ${product.name}`)
       setPersonalizedImages(prev => ({ ...prev, [product.id]: product.image_url }))
       setReadyCount(prev => prev + 1)
       setProductStatus(prev => ({ ...prev, [product.id]: 'error' }))
       
-      return { success: false, productId: product.id }
+      return { 
+        success: false, 
+        productId: product.id,
+        error: errorMessage,
+        isTimeout,
+        isNetworkError
+      }
     } finally {
       controllersRef.current.delete(product.id)
       if (!guard()) {
         setInFlightNames(prev => prev.filter(n => n !== product.name))
       }
     }
+  }
+
+  // Helper function to run tasks with concurrency limit
+  const runWithConcurrencyLimit = async <T,>(
+    tasks: (() => Promise<T>)[],
+    limit: number
+  ): Promise<T[]> => {
+    const results: T[] = []
+    const executing: Promise<void>[] = []
+    
+    for (const [index, task] of tasks.entries()) {
+      const promise = (async () => {
+        const result = await task()
+        results[index] = result
+      })()
+      
+      executing.push(promise)
+      
+      if (executing.length >= limit) {
+        await Promise.race(executing)
+        executing.splice(executing.findIndex(p => p === promise), 1)
+      }
+    }
+    
+    await Promise.all(executing)
+    return results
   }
 
   const generatePersonalizedImagesWithFile = async (file: File) => {
@@ -317,9 +383,11 @@ export default function BananaSportswearStorefront() {
     setIsTransitioning(false)
     setGenerationProgress(0)
     
-    console.log(`[gen] Start runId=${runId}, total=${total} products`)
+    console.log(`[gen] 🚀 Start runId=${runId}, total=${total} products`)
+    console.log(`[gen] Products to generate:`, products.map(p => p.name).join(', '))
     console.time('[gen] priority')
     console.time('[gen] background')
+    console.time('[gen] total')
     
     if (total === 0) {
       setIsGenerating(false)
@@ -329,24 +397,37 @@ export default function BananaSportswearStorefront() {
     const priority = products.slice(0, 3)
     const background = products.slice(3)
     
-    // Start PRIORITY batch (first 3 products in parallel)
-    const priorityPromises = priority.map(p => runProductGeneration(p, file, runId))
+    console.log(`[gen] Priority batch (${priority.length}):`, priority.map(p => p.name).join(', '))
+    console.log(`[gen] Background batch (${background.length}):`, background.map(p => p.name).join(', '))
     
-    // Start BACKGROUND batch (remaining products in parallel)
-    const bgPromises = background.map(p => runProductGeneration(p, file, runId))
-    if (background.length > 0) setBackgroundInProgress(true)
+    // Start PRIORITY batch with concurrency limit of 3
+    const priorityTasks = priority.map(p => () => runProductGeneration(p, file, runId))
+    const priorityPromise = runWithConcurrencyLimit(priorityTasks, 3)
     
-    // Auto-switch after priority batch settles
-    void Promise.allSettled(priorityPromises).then(() => {
+    // Auto-switch after priority batch completes
+    priorityPromise.then(results => {
       if (runId !== generationRunIdRef.current) return
       
       console.timeEnd('[gen] priority')
       setIsPriorityBatchDone(true)
       
+      const successCount = results.filter((r: any) => r.success).length
+      const errorCount = results.filter((r: any) => !r.success && !r.cancelled).length
+      const cancelledCount = results.filter((r: any) => r.cancelled).length
+      
+      console.log(`[gen] 📊 Priority batch complete: ${successCount}/${priority.length} succeeded, ${errorCount} failed, ${cancelledCount} cancelled`)
+      
+      if (errorCount > 0) {
+        const failedProducts = results
+          .map((r: any, i: number) => (!r.success && !r.cancelled ? priority[i].name : null))
+          .filter(Boolean)
+        console.warn(`[gen] ⚠️  Failed products:`, failedProducts.join(', '))
+      }
+      
       // Auto-switch to generated view
       if (!didAutoSwitchRef.current) {
         didAutoSwitchRef.current = true
-        console.log('[gen] Priority done, auto-switching to generated view')
+        console.log('[gen] 🎬 Priority done, auto-switching to generated view')
         
         setTimeout(() => {
           setIsTransitioning(true)
@@ -361,26 +442,72 @@ export default function BananaSportswearStorefront() {
           }, 200)
         }, 300)
       }
-      
-      const successCount = priorityPromises.filter((p: any) => p.status === 'fulfilled').length
-      console.log(`[gen] Priority batch: ${successCount}/${priority.length} succeeded`)
+    }).catch(err => {
+      console.error('[gen] ❌ Priority batch error:', err)
     })
     
-    // Background batch completion
-    void Promise.allSettled(bgPromises).then(() => {
-      if (runId !== generationRunIdRef.current) return
+    // Start BACKGROUND batch with concurrency limit of 2 (lower to avoid overwhelming API)
+    if (background.length > 0) {
+      setBackgroundInProgress(true)
+      const bgTasks = background.map(p => () => runProductGeneration(p, file, runId))
       
-      console.timeEnd('[gen] background')
-      setBackgroundInProgress(false)
-      setIsGenerating(false)
-      
-      const allResults = Object.values(productStatus)
-      const readyResults = allResults.filter(s => s === 'ready').length
-      const errorResults = allResults.filter(s => s === 'error').length
-      
-      setIsPersonalized(readyResults > 0)
-      console.log(`[gen] All done: ${readyResults} ready, ${errorResults} errors, runId=${runId}`)
-    })
+      runWithConcurrencyLimit(bgTasks, 2).then(results => {
+        if (runId !== generationRunIdRef.current) return
+        
+        console.timeEnd('[gen] background')
+        console.timeEnd('[gen] total')
+        setBackgroundInProgress(false)
+        setIsGenerating(false)
+        
+        const successCount = results.filter((r: any) => r.success).length
+        const errorCount = results.filter((r: any) => !r.success && !r.cancelled).length
+        const cancelledCount = results.filter((r: any) => r.cancelled).length
+        
+        console.log(`[gen] 📊 Background batch complete: ${successCount}/${background.length} succeeded, ${errorCount} failed, ${cancelledCount} cancelled`)
+        
+        if (errorCount > 0) {
+          const failedProducts = results
+            .map((r: any, i: number) => (!r.success && !r.cancelled ? background[i].name : null))
+            .filter(Boolean)
+          console.warn(`[gen] ⚠️  Failed products:`, failedProducts.join(', '))
+        }
+        
+        // Summary of all generations
+        const allResults = Object.values(productStatus)
+        const readyResults = allResults.filter(s => s === 'ready').length
+        const errorResults = allResults.filter(s => s === 'error').length
+        
+        setIsPersonalized(readyResults > 0)
+        console.log(`[gen] 🏁 All done: ${readyResults}/${total} ready, ${errorResults} errors, runId=${runId}`)
+        
+        if (readyResults === total) {
+          console.log('[gen] 🎉 All images generated successfully!')
+        } else if (readyResults > 0) {
+          console.log(`[gen] ⚠️  Partial success: ${readyResults}/${total} images generated`)
+        } else {
+          console.error('[gen] 💥 All generations failed!')
+        }
+      }).catch(err => {
+        console.error('[gen] ❌ Background batch error:', err)
+        setBackgroundInProgress(false)
+        setIsGenerating(false)
+      })
+    } else {
+      // No background items, mark as complete
+      console.log('[gen] No background items to process')
+      priorityPromise.then(() => {
+        console.timeEnd('[gen] total')
+        setBackgroundInProgress(false)
+        setIsGenerating(false)
+        
+        const allResults = Object.values(productStatus)
+        const readyResults = allResults.filter(s => s === 'ready').length
+        const errorResults = allResults.filter(s => s === 'error').length
+        
+        setIsPersonalized(readyResults > 0)
+        console.log(`[gen] 🏁 All done: ${readyResults}/${total} ready, ${errorResults} errors, runId=${runId}`)
+      })
+    }
   }
 
   if (productsError) {
