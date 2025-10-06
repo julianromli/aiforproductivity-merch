@@ -753,27 +753,38 @@ export default function BananaSportswearStorefront() {
                   </AspectRatio>
                 </div>
 
-                {/* Color Selector - Only show if product has multiple colors */}
-                {product.colors && product.colors.length > 1 && (
+                {/* Color Selector - Always show available colors */}
+                {product.colors && product.colors.length > 0 && (
                   <div className="flex gap-2 mb-3">
-                    {product.colors.map((color) => (
-                      <button
-                        key={color.id}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleColorSelect(product.id, color.id)
-                        }}
-                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${
-                          selectedColors[product.id] === color.id
-                            ? "border-primary ring-1 ring-primary ring-offset-1 scale-110"
-                            : "border-muted hover:border-muted-foreground"
-                        }`}
-                        style={{ backgroundColor: color.color_hex }}
-                        aria-label={`Select ${color.color_name} color`}
-                        title={color.color_name}
-                      />
-                    ))}
+                    {product.colors.map((color) => {
+                      const isSingleColor = product.colors!.length === 1
+                      const isSelected = selectedColors[product.id] === color.id
+                      
+                      return (
+                        <button
+                          key={color.id}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (!isSingleColor) {
+                              handleColorSelect(product.id, color.id)
+                            }
+                          }}
+                          className={`w-4 h-4 rounded-full border transition-all duration-200 ${
+                            isSingleColor
+                              ? "border-muted cursor-default"
+                              : `hover:scale-110 ${
+                                  isSelected
+                                    ? "border-primary ring-1 ring-primary ring-offset-1 scale-110"
+                                    : "border-muted hover:border-muted-foreground"
+                                }`
+                          }`}
+                          style={{ backgroundColor: color.color_hex }}
+                          aria-label={`${isSingleColor ? '' : 'Select '}${color.color_name} color`}
+                          title={color.color_name}
+                        />
+                      )
+                    })}
                   </div>
                 )}
 
