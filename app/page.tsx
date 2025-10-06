@@ -764,9 +764,9 @@ export default function BananaSportswearStorefront() {
                           e.stopPropagation()
                           handleColorSelect(product.id, color.id)
                         }}
-                        className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
+                        className={`w-4 h-4 rounded-full border transition-all duration-200 hover:scale-110 ${
                           selectedColors[product.id] === color.id
-                            ? "border-primary ring-2 ring-primary ring-offset-2 scale-110"
+                            ? "border-primary ring-1 ring-primary ring-offset-1 scale-110"
                             : "border-muted hover:border-muted-foreground"
                         }`}
                         style={{ backgroundColor: color.color_hex }}
