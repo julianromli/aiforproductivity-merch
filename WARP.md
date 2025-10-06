@@ -466,11 +466,11 @@ BLOB_READ_WRITE_TOKEN=
 
 ---
 
-**Last Updated:** 2025-02-05  
+**Last Updated:** 2025-10-06  
 **Next.js Version:** 15.5.4 (upgraded 2025-01-30)  
 **Package Manager:** pnpm
 
-**Latest Feature:** Hybrid parallel image generation with auto-switch (2025-02-05)
+**Latest Feature:** Multi-color Product Variants (2025-10-06)
 
 ---
 
@@ -536,7 +536,140 @@ const [selectedImage, setSelectedImage] = useState<{
 
 ---
 
+#### 7. Multi-color Product Variants
+**Support for multiple color options per product:**
+- Each product can have multiple color variants (Black, White, etc.)
+- Each color has its own product image
+- Admin can manage colors via dashboard (add, edit, delete)
+- Users can select colors on storefront with visual selector
+- AI generation uses selected color for virtual try-on
+
+**Database Schema:** `product_colors` table
+```sql
+CREATE TABLE product_colors (
+  id UUID PRIMARY KEY,
+  product_id UUID REFERENCES products(id),
+  color_name VARCHAR(50),     -- "Black", "White"
+  color_hex VARCHAR(7),        -- "#000000", "#FFFFFF"
+  image_url VARCHAR(500),      -- Color-specific product image
+  is_default BOOLEAN,          -- Default color on page load
+  sort_order INTEGER
+);
+```
+
+**API Endpoints:**
+```typescript
+// Public
+GET /api/products           // Returns products with colors array
+
+// Admin
+GET    /api/admin/products/[id]/colors           // List colors
+POST   /api/admin/products/[id]/colors           // Add color
+PUT    /api/admin/products/[id]/colors/[colorId] // Update color
+DELETE /api/admin/products/[id]/colors/[colorId] // Delete color
+```
+
+**Admin UI:**
+- `components/admin/color-variant-list.tsx` - Color management list
+- `components/admin/color-variant-form.tsx` - Add/Edit color dialog
+- Integrated in product edit form (edit mode only)
+- Image upload per color variant
+- Set default color, prevent deleting last color
+
+**Storefront:**
+- Circular color selector buttons (8x8px, hex background)
+- Border highlight on selected color (ring-2 ring-primary)
+- Automatic image switch when color selected
+- Default color pre-selected on page load
+- Only shows selector if product has 2+ colors
+
+**AI Integration:**
+- Frontend sends colorName with generation request
+- Backend uses selected color's image_url
+- Prompt enhanced with color information
+- Example: "IMPORTANT: The T-shirt must be specifically in white color..."
+
+**Color Constants:** `lib/color-constants.ts`
+```typescript
+export const COLOR_MAP = {
+  Black: '#000000',
+  White: '#FFFFFF',
+} as const
+```
+
+**Migration:**
+- `scripts/06-add-product-colors-table.sql` - Create table, indexes, RLS, trigger
+- `scripts/07-migrate-existing-products-colors.sql` - Auto-create Black variant for existing products
+
+**Benefits:**
+- ✅ Multiple color options per product without duplicate products
+- ✅ Color-specific product images
+- ✅ Seamless AI generation with selected color
+- ✅ Easy to extend (add more colors by editing COLOR_MAP)
+- ✅ Fully integrated: Database ↔ Admin ↔ Storefront ↔ AI
+
+---
+
 ## 📝 Recent Changes
+
+### 2025-10-06: Multi-color Product Variants (Black & White)
+- ✅ **Full-stack implementation of product color variants**
+- ✅ **Database layer:**
+  - New table: `product_colors` with proper indexes, RLS policies, and auto-update trigger
+  - Migration scripts: 06 (create table), 07 (migrate existing products to Black default)
+  - Verified: 5 products automatically migrated with default Black color
+  - Foreign key constraint with CASCADE delete
+- ✅ **Backend APIs:**
+  - Public: `GET /api/products` now includes `colors` array with proper ordering
+  - Admin CRUD: 4 new endpoints for color management
+    - `GET /POST /api/admin/products/[id]/colors`
+    - `PUT /DELETE /api/admin/products/[id]/colors/[colorId]`
+  - Smart default handling (auto-set next color if deleting default)
+  - Prevents deletion of last color variant
+  - Auto-increment sort_order
+- ✅ **Admin UI components:**
+  - `color-variant-list.tsx` - Visual color list with edit/delete actions
+  - `color-variant-form.tsx` - Dialog with color selector, image upload, default toggle
+  - Integrated into `product-form.tsx` (edit mode only)
+  - Uses existing image upload API (`/api/admin/upload`)
+  - Toast notifications for success/error feedback
+- ✅ **Storefront enhancements:**
+  - Circular color selector buttons (8x8 rounded-full with hex background)
+  - Border highlight + ring effect on selected color
+  - Automatic image switching based on selected color
+  - State management: `selectedColors` Record<productId, colorId>
+  - Default colors pre-selected on page load (is_default flag)
+  - Selector only visible if product has 2+ colors
+- ✅ **AI Integration:**
+  - Modified `runProductGeneration` to use selected color's image_url
+  - Added `colorName` field to FormData sent to `/api/generate-model-image`
+  - Backend enhances prompt with color information
+  - Example: "IMPORTANT: The T-shirt must be specifically in white color..."
+  - Fallback images also respect selected color
+- ✅ **TypeScript types:**
+  - New interface: `ProductColor` in `lib/types.ts`
+  - Extended `Product` interface with optional `colors` array
+  - Color constants: `COLOR_MAP` in `lib/color-constants.ts`
+- ✅ **Files created (8):**
+  - `scripts/06-add-product-colors-table.sql`
+  - `scripts/07-migrate-existing-products-colors.sql`
+  - `app/api/admin/products/[id]/colors/route.ts`
+  - `app/api/admin/products/[id]/colors/[colorId]/route.ts`
+  - `lib/color-constants.ts`
+  - `components/admin/color-variant-form.tsx`
+  - `components/admin/color-variant-list.tsx`
+- ✅ **Files modified (5):**
+  - `lib/types.ts` - Added ProductColor interface
+  - `app/api/products/route.ts` - Include colors in response
+  - `components/admin/product-form.tsx` - Embedded color management
+  - `app/page.tsx` - Color selector UI + state management
+  - `app/api/generate-model-image/route.ts` - Color-aware prompts
+  - `WARP.md` - Documentation update
+- ✅ **Zero TypeScript errors** - Build verified successful
+- ✅ **Future extensibility:**
+  - Add more colors by editing `COLOR_MAP` constant
+  - No code changes needed for existing functionality
+  - Database-driven, admin-managed
 
 ### 2025-02-05: Dynamic Categories Integration (Database → Backend → Frontend)
 - ✅ **Standardized product categories to 4 general merchandise types**

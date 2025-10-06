@@ -11,18 +11,7 @@ import { ImageWithLoading } from "@/components/image-with-loading"
 import { ImagePreviewDialog } from "@/components/image-preview-dialog"
 import { formatCurrency } from "@/lib/utils"
 import useSWR from "swr"
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  currency: string
-  category: string
-  image_url: string
-  description: string
-  buy_link: string | null
-  is_active: boolean
-}
+import type { Product, ProductColor } from "@/lib/types"
 
 type GenerationStatus = 'pending' | 'generating' | 'ready' | 'error'
 type ProductStatusMap = Record<string, GenerationStatus>
@@ -109,6 +98,7 @@ export default function BananaSportswearStorefront() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [currentProductName, setCurrentProductName] = useState("")
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null)
+  const [selectedColors, setSelectedColors] = useState<Record<string, string>>({})
   
   // Hybrid parallel generation state
   const [readyCount, setReadyCount] = useState(0)
@@ -129,6 +119,20 @@ export default function BananaSportswearStorefront() {
     }, 100)
     return () => clearTimeout(timer)
   }, [])
+
+  // Initialize default colors when products load
+  useEffect(() => {
+    if (products.length > 0 && Object.keys(selectedColors).length === 0) {
+      const defaults: Record<string, string> = {}
+      products.forEach((p) => {
+        const defaultColor = p.colors?.find((c) => c.is_default) || p.colors?.[0]
+        if (defaultColor) {
+          defaults[p.id] = defaultColor.id
+        }
+      })
+      setSelectedColors(defaults)
+    }
+  }, [products])
   
   // Cleanup on unmount: abort all controllers
   useEffect(() => {
@@ -152,6 +156,26 @@ export default function BananaSportswearStorefront() {
 
   const handleImageLoad = (productId: string) => {
     setLoadedImages((prev) => new Set([...prev, productId]))
+  }
+
+  // Handle color selection
+  const handleColorSelect = (productId: string, colorId: string) => {
+    setSelectedColors((prev) => ({ ...prev, [productId]: colorId }))
+  }
+
+  // Get currently selected color for a product
+  const getCurrentColor = (product: Product): ProductColor | undefined => {
+    const colorId = selectedColors[product.id]
+    return product.colors?.find((c) => c.id === colorId) || product.colors?.[0]
+  }
+
+  // Get current image URL based on view mode and selected color
+  const getCurrentImageUrl = (product: Product): string => {
+    if (viewMode === "generated" && personalizedImages[product.id]) {
+      return personalizedImages[product.id]
+    }
+    const currentColor = getCurrentColor(product)
+    return currentColor?.image_url || product.image_url || "/placeholder.svg"
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -232,9 +256,11 @@ export default function BananaSportswearStorefront() {
       const retryText = retryCount > 0 ? ` (retry ${retryCount}/${MAX_RETRIES})` : ''
       console.log(`[gen] Starting generation for product: ${product.name} (ID: ${product.id}, runId: ${runId})${retryText}`)
       
-      // Fetch product image
-      console.log(`[gen] Fetching product image for ${product.name}...`)
-      const productImageResponse = await fetch(product.image_url)
+      // Fetch product image (use selected color variant)
+      const currentColor = getCurrentColor(product)
+      const imageUrl = currentColor?.image_url || product.image_url
+      console.log(`[gen] Fetching product image for ${product.name} (${currentColor?.color_name || 'default'} color)...`)
+      const productImageResponse = await fetch(imageUrl)
       if (!productImageResponse.ok) {
         throw new Error(`Failed to fetch product image for ${product.name}: ${productImageResponse.status}`)
       }
@@ -251,6 +277,7 @@ export default function BananaSportswearStorefront() {
       formData.append("productName", product.name)
       formData.append("productCategory", product.category)
       formData.append("productId", product.id)
+      formData.append("colorName", currentColor?.color_name || "default")
       
       // Call API with 90s timeout (increased for better stability)
       console.log(`[gen] Calling AI generation API for ${product.name}...`)
@@ -315,9 +342,11 @@ export default function BananaSportswearStorefront() {
         return runProductGeneration(product, file, runId, retryCount + 1)
       }
       
-      // Fallback to original image after all retries failed
-      console.log(`[gen] 📸 Using fallback image for ${product.name}`)
-      setPersonalizedImages(prev => ({ ...prev, [product.id]: product.image_url }))
+      // Fallback to original image after all retries failed (use selected color)
+      const fallbackColor = getCurrentColor(product)
+      const fallbackImage = fallbackColor?.image_url || product.image_url
+      console.log(`[gen] 📸 Using fallback image for ${product.name} (${fallbackColor?.color_name || 'default'} color)`)
+      setPersonalizedImages(prev => ({ ...prev, [product.id]: fallbackImage }))
       setReadyCount(prev => prev + 1)
       setProductStatus(prev => ({ ...prev, [product.id]: 'error' }))
       
@@ -695,12 +724,11 @@ export default function BananaSportswearStorefront() {
                 <div 
                   className="relative w-full overflow-hidden mb-4 cursor-pointer group/image"
                   onClick={() => {
-                    const imageSrc = viewMode === "generated" && personalizedImages[product.id]
-                      ? personalizedImages[product.id]
-                      : product.image_url || "/placeholder.svg"
+                    const imageSrc = getCurrentImageUrl(product)
+                    const currentColor = getCurrentColor(product)
                     const imageAlt = viewMode === "generated" && personalizedImages[product.id]
-                      ? `You modeling ${product.name}`
-                      : product.name
+                      ? `You modeling ${product.name} (${currentColor?.color_name || ''})`
+                      : `${product.name} - ${currentColor?.color_name || ''}`
                     setSelectedImage({ src: imageSrc, alt: imageAlt })
                   }}
                 >
@@ -711,15 +739,11 @@ export default function BananaSportswearStorefront() {
                   </div>
                   <AspectRatio ratio={4 / 5}>
                     <ImageWithLoading
-                      src={
-                        viewMode === "generated" && personalizedImages[product.id]
-                          ? personalizedImages[product.id]
-                          : product.image_url || "/placeholder.svg"
-                      }
+                      src={getCurrentImageUrl(product)}
                       alt={
                         viewMode === "generated" && personalizedImages[product.id]
-                          ? `You modeling ${product.name}`
-                          : product.name
+                          ? `You modeling ${product.name} (${getCurrentColor(product)?.color_name || ''})`
+                          : `${product.name} - ${getCurrentColor(product)?.color_name || ''}`
                       }
                       className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${
                         isTransitioning ? "opacity-90" : "opacity-100"
@@ -728,6 +752,30 @@ export default function BananaSportswearStorefront() {
                     />
                   </AspectRatio>
                 </div>
+
+                {/* Color Selector - Only show if product has multiple colors */}
+                {product.colors && product.colors.length > 1 && (
+                  <div className="flex gap-2 mb-3">
+                    {product.colors.map((color) => (
+                      <button
+                        key={color.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleColorSelect(product.id, color.id)
+                        }}
+                        className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
+                          selectedColors[product.id] === color.id
+                            ? "border-primary ring-2 ring-primary ring-offset-2 scale-110"
+                            : "border-muted hover:border-muted-foreground"
+                        }`}
+                        style={{ backgroundColor: color.color_hex }}
+                        aria-label={`Select ${color.color_name} color`}
+                        title={color.color_name}
+                      />
+                    ))}
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <div>

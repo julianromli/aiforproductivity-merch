@@ -12,8 +12,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Loader2, X } from "lucide-react"
-import type { Product } from "@/lib/types"
+import type { Product, ProductColor } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
+import { ColorVariantList } from "./color-variant-list"
 
 interface ProductFormProps {
   product?: Product
@@ -34,6 +35,8 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url || null)
   const [categories, setCategories] = useState<Category[]>([])
   const [loadingCategories, setLoadingCategories] = useState(true)
+  const [colors, setColors] = useState<ProductColor[]>(product?.colors || [])
+  const [loadingColors, setLoadingColors] = useState(false)
 
   const [formData, setFormData] = useState({
     name: product?.name || "",
@@ -66,6 +69,32 @@ export function ProductForm({ product, mode }: ProductFormProps) {
       }
     }
     fetchCategories()
+  }, [])
+
+  // Fetch colors for existing product
+  const fetchColors = async () => {
+    if (mode !== "edit" || !product?.id) return
+
+    try {
+      setLoadingColors(true)
+      const response = await fetch(`/api/admin/products/${product.id}/colors`)
+      if (!response.ok) throw new Error("Failed to fetch colors")
+      const data = await response.json()
+      setColors(data.colors || [])
+    } catch (error) {
+      console.error("[v0] Error fetching colors:", error)
+      toast({
+        title: "Warning",
+        description: "Gagal memuat color variants. Coba refresh page.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingColors(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchColors()
   }, [])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -361,6 +390,17 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           </Card>
         </div>
       </div>
+
+      {/* Color Variants Section (Edit Mode Only) */}
+      {mode === "edit" && product?.id && (
+        <div className="space-y-4">
+          <ColorVariantList productId={product.id} colors={colors} onColorsChange={fetchColors} />
+          <p className="text-sm text-muted-foreground">
+            💡 <strong>Tip:</strong> Setiap produk harus punya minimal 1 color variant. Upload image yang berbeda untuk
+            setiap warna.
+          </p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex justify-end gap-4">

@@ -151,6 +151,7 @@ export async function POST(request: NextRequest) {
     const productName = formData.get("productName") as string
     const productCategory = formData.get("productCategory") as string
     const productId = formData.get("productId") as string
+    const colorName = formData.get("colorName") as string
 
     console.log("[v0] Extracted data:")
     console.log("[v0] - userPhoto:", userPhoto?.name, userPhoto?.type, userPhoto?.size)
@@ -158,6 +159,7 @@ export async function POST(request: NextRequest) {
     console.log("[v0] - productName:", productName)
     console.log("[v0] - productCategory:", productCategory)
     console.log("[v0] - productId:", productId)
+    console.log("[v0] - colorName:", colorName || "default")
 
     if (!userPhoto || !productImage || !productName) {
       console.log("[v0] Missing required fields")
@@ -174,7 +176,16 @@ export async function POST(request: NextRequest) {
     const convertedProductImage = await convertImageToSupportedFormat(productImage)
     console.log("[v0] Product image converted successfully")
 
-    const prompt = await getPromptForProduct(productId, productName, productCategory)
+    // Get base prompt and enhance with color information
+    let prompt = await getPromptForProduct(productId, productName, productCategory)
+    
+    // Inject color information into prompt if provided
+    if (colorName && colorName !== "default") {
+      const colorLower = colorName.toLowerCase()
+      // Add color emphasis to the beginning of the prompt
+      prompt = `IMPORTANT: The ${productName} must be specifically in ${colorLower} color as shown in the product image. ` + prompt
+      console.log(`[v0] Enhanced prompt with color: ${colorLower}`)
+    }
 
     console.log("[v0] Generated prompt length:", prompt.length)
     console.log("[v0] Prompt preview:", prompt.substring(0, 100) + "...")

@@ -1,3 +1,15 @@
+export interface ProductColor {
+  id: string
+  product_id: string
+  color_name: string
+  color_hex: string
+  image_url: string
+  is_default: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -12,6 +24,7 @@ export interface Product {
   created_at: string
   updated_at: string
   ai_prompts?: AIPrompt[]
+  colors?: ProductColor[]
 }
 
 export interface AIPrompt {

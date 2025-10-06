@@ -11,10 +11,28 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("products")
-      .select("id, name, price, currency, category, description, image_url, buy_link")
+      .select(`
+        id,
+        name,
+        price,
+        currency,
+        category,
+        description,
+        image_url,
+        buy_link,
+        colors:product_colors(
+          id,
+          color_name,
+          color_hex,
+          image_url,
+          is_default,
+          sort_order
+        )
+      `)
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false })
+      .order("sort_order", { foreignTable: "product_colors", ascending: true })
 
     // Apply category filter if provided
     if (category) {
