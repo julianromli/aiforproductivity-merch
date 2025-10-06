@@ -95,7 +95,7 @@ export function ColorVariantList({ productId, colors, onColorsChange }: ColorVar
           {colors.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <p className="mb-3">Belum ada color variant</p>
-              <Button onClick={handleAddColor} size="sm">
+              <Button type="button" onClick={handleAddColor} size="sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Add First Color
               </Button>
@@ -131,6 +131,7 @@ export function ColorVariantList({ productId, colors, onColorsChange }: ColorVar
                     {/* Actions */}
                     <div className="flex gap-1">
                       <Button
+                        type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditColor(color)}
@@ -140,6 +141,7 @@ export function ColorVariantList({ productId, colors, onColorsChange }: ColorVar
                         <span className="ml-1 hidden sm:inline">Edit</span>
                       </Button>
                       <Button
+                        type="button"
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteClick(color)}
@@ -154,7 +156,7 @@ export function ColorVariantList({ productId, colors, onColorsChange }: ColorVar
                 ))}
               </div>
 
-              <Button onClick={handleAddColor} className="w-full" variant="outline">
+              <Button type="button" onClick={handleAddColor} className="w-full" variant="outline">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Another Color
               </Button>
@@ -168,7 +170,13 @@ export function ColorVariantList({ productId, colors, onColorsChange }: ColorVar
         productId={productId}
         color={selectedColor}
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open)
+          if (!open) {
+            // Reset selectedColor when dialog closes
+            setSelectedColor(null)
+          }
+        }}
         onSuccess={onColorsChange}
       />
 

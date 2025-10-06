@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +32,18 @@ export function ColorVariantForm({ productId, color, open, onOpenChange, onSucce
     image_url: color?.image_url || "",
     is_default: color?.is_default || false,
   })
+
+  // Reset form data when dialog opens/closes or color prop changes
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        color_name: (color?.color_name as ColorName) || ("Black" as ColorName),
+        color_hex: color?.color_hex || COLOR_MAP.Black,
+        image_url: color?.image_url || "",
+        is_default: color?.is_default || false,
+      })
+    }
+  }, [open, color])
 
   const handleColorChange = (colorName: ColorName) => {
     setFormData({
