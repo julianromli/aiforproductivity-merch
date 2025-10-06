@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -20,12 +20,20 @@ interface ProductFormProps {
   mode: "create" | "edit"
 }
 
+interface Category {
+  id: string
+  name: string
+  slug: string
+}
+
 export function ProductForm({ product, mode }: ProductFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url || null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
 
   const [formData, setFormData] = useState({
     name: product?.name || "",
@@ -37,6 +45,28 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     buy_link: product?.buy_link || "",
     is_active: product?.is_active ?? true,
   })
+
+  // Fetch categories from API
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch("/api/categories")
+        if (!response.ok) throw new Error("Failed to fetch categories")
+        const data = await response.json()
+        setCategories(data.categories || [])
+      } catch (error) {
+        console.error("[v0] Error fetching categories:", error)
+        toast({
+          title: "Warning",
+          description: "Gagal memuat categories. Coba refresh page.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+    fetchCategories()
+  }, [])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -219,14 +249,17 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  disabled={loadingCategories}
                 >
                   <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Footwear">Footwear</SelectItem>
-                    <SelectItem value="Apparel">Apparel</SelectItem>
-                    <SelectItem value="Accessories">Accessories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

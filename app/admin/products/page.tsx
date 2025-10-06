@@ -5,12 +5,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Pencil, Trash2, Loader2 } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
-import type { Product } from "@/lib/types"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,19 +24,41 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Plus, Search, Pencil, Trash2, Loader2 } from "lucide-react"
+import type { Product } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
+import { formatCurrency } from "@/lib/utils"
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+}
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [deleteId, setDeleteId] = useState<string | null>(null)
   const { toast } = useToast()
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("all")
 
   useEffect(() => {
     fetchProducts()
-  }, [searchQuery, categoryFilter])
+    fetchCategories()
+  }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/categories")
+      if (!response.ok) throw new Error("Failed to fetch categories")
+      const data = await response.json()
+      setCategories(data.categories || [])
+    } catch (error) {
+      console.error("[v0] Error fetching categories:", error)
+    }
+  }
 
   const fetchProducts = async () => {
     try {
@@ -143,9 +168,11 @@ export default function ProductsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="Footwear">Footwear</SelectItem>
-            <SelectItem value="Apparel">Apparel</SelectItem>
-            <SelectItem value="Accessories">Accessories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.name}>
+                {category.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

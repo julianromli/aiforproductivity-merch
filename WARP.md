@@ -538,6 +538,42 @@ const [selectedImage, setSelectedImage] = useState<{
 
 ## 📝 Recent Changes
 
+### 2025-02-05: Dynamic Categories Integration (Database → Backend → Frontend)
+- ✅ **Standardized product categories to 4 general merchandise types**
+- ✅ **Database migration:**
+  - Replaced old categories (MEN'S HOODIE, MEN'S PANTS, RUNNING SHOES, ACCESSORIES)
+  - New categories: **Apparel, Accessories, Stationery, Other**
+  - Migration: `update_categories_to_general_merch` via Supabase MCP
+  - AI prompt instructions updated per category for better image generation
+- ✅ **Backend integration:**
+  - Existing `/api/categories` API already functional (no changes needed)
+  - Returns categories ordered alphabetically
+  - Public endpoint (no auth required)
+- ✅ **Frontend updates:**
+  - `components/admin/product-form.tsx`: 
+    - Added `useEffect` to fetch categories from API
+    - Dynamic dropdown population (no hardcoded values)
+    - Loading state during fetch
+    - Error handling with toast notifications
+  - `app/admin/products/page.tsx`:
+    - Added categories state & fetch function
+    - Dynamic category filter dropdown
+    - Both form and filter now use same API source
+  - `components/admin/products-preview.tsx`: Already dynamic (receives categories as props)
+- ✅ **Benefits:**
+  - ✨ **Single source of truth:** Categories managed in database only
+  - ✨ **Zero hardcoded values:** Easy to add/modify categories without code changes
+  - ✨ **Consistent UX:** All dropdowns show same categories
+  - ✨ **Future-proof:** Admin can manage categories via database directly
+- ✅ Files modified:
+  - Database: `categories` table (via migration)
+  - `components/admin/product-form.tsx` - Dynamic category fetch
+  - `app/admin/products/page.tsx` - Dynamic category filter
+  - `WARP.md` - Documentation update
+- ✅ Zero TypeScript errors
+- ✅ Full integration verified: Database ↔ API ↔ Frontend
+- ✅ Categories API tested: `GET /api/categories` returns 4 categories successfully
+
 ### 2025-02-05: Products Preview with Quick Edit on Dashboard
 - ✅ **Added products preview section to admin dashboard**
 - ✅ **ProductsPreview component** (`components/admin/products-preview.tsx`):
