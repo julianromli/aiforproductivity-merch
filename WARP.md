@@ -414,9 +414,28 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
-# Vercel Blob (auto-configured)
+# Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=
 ```
+
+### Vercel Blob Configuration
+
+**Current Store:**
+- **Store ID:** `pRqUg3o7zo4QIMJt`
+- **Base URL:** `https://prqug3o7zo4qimjt.public.blob.vercel-storage.com`
+- **Token:** `vercel_blob_rw_pRqUg3o7zo4QIMJt_DmfwPwUamyDtBzKNxLsbQHltgRsddK`
+- **Access Level:** Read & Write (public)
+
+**Upload Configuration:**
+- **Path Pattern:** `products/{timestamp}-{random}.{extension}`
+- **Allowed Formats:** JPEG, JPG, PNG, WebP, GIF
+- **Max File Size:** 5MB
+- **Implementation:** `app/api/admin/upload/route.ts`
+
+**Store Management:**
+- Dashboard: https://vercel.com/faiz-intifadas-projects-666b7de0/v0-storefront-w-nano-banana-ai-s/stores
+- Previous store ID: `OJhCKzxtQCOMYf8Z` (deprecated)
+- **Last Updated:** 2025-10-09
 
 **Pre-Deployment Checklist:**
 - [ ] All environment variables set in Vercel
