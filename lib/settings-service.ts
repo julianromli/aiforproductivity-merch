@@ -44,7 +44,7 @@ export async function getSetting<T = unknown>(key: string): Promise<T | null> {
     .from("site_settings")
     .select("value")
     .eq("key", key)
-    .single()
+    .maybeSingle()
 
   if (error) {
     console.error(`Error fetching setting ${key}:`, error)
@@ -99,7 +99,7 @@ export async function deleteSetting(key: string): Promise<boolean> {
 // Specific getters for typed settings
 export async function getLogoSettings(): Promise<LogoSettings> {
   const settings = await getSetting<LogoSettings>("logo")
-  return settings || { url: "/placeholder.svg", alt: "Store Logo" }
+  return settings || { url: "/placeholder.svg", alt: "Website Logo" }
 }
 
 export async function getFontSettings(): Promise<FontSettings> {

@@ -9,6 +9,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Upload, ShoppingBag, Heart, Search } from "lucide-react"
 import { ImageWithLoading } from "@/components/image-with-loading"
 import { ImagePreviewDialog } from "@/components/image-preview-dialog"
+import { SiteLogo } from "@/components/site-logo"
 import { formatCurrency } from "@/lib/utils"
 import useSWR from "swr"
 import type { Product, ProductColor } from "@/lib/types"
@@ -659,10 +660,7 @@ export default function BananaSportswearStorefront() {
         }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center">
-            <img src="https://aiforproductivity.id/wp-content/uploads/2025/06/AI-For-Productivity-Logo-e1752123757152.png" alt="AI FOR PRODUCTIVITY" className="h-10 w-auto" />
-          <a href="https://aiforproductivity.id/" className="text-xl font-bold ms-4">AI For Productivity</a>
-          </div>
+          <SiteLogo className="h-10 w-auto" showText={true} />
 
           <div
             className={`flex items-center space-x-6 transition-all duration-700 ${
@@ -828,7 +826,9 @@ export default function BananaSportswearStorefront() {
       >
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex justify-center mb-6">
-            <img src="https://aiforproductivity.id/wp-content/uploads/2025/06/AI-For-Productivity-Logo-e1752123757152.png" alt="BANANA SPORTSWEAR" className="h-8 w-auto opacity-40" />
+            <div className="opacity-40">
+              <SiteLogo className="h-8 w-auto" />
+            </div>
           </div>
 
           <p className="text-muted-foreground text-sm font-bold">

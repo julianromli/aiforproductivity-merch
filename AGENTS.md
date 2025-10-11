@@ -30,6 +30,13 @@ Use Supabase MCP tools for all database operations:
 - `list_tables` - View schema
 - `get_advisors` - Security/performance checks
 
+**Database Tables**:
+- `products` - Product catalog
+- `categories` - Product categories
+- `ai_prompts` - AI generation prompts per product
+- `product_colors` - Color variants for products
+- `site_settings` - Customizable site settings (logo, fonts, colors)
+
 ### UI Components (ShadCN)
 Use ShadCN MCP tools:
 1. `search_items_in_registries` - Find components
@@ -137,10 +144,13 @@ Commit types: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`
 
 Admin can customize website appearance without coding:
 
-1. **Logo Management**
-   - Upload file (Vercel Blob) or use external URL
+1. **Logo & Site Name Management**
+   - Upload logo file (Vercel Blob) or use external URL
    - Max 2MB, supports JPEG/PNG/WebP/GIF/SVG
+   - Set website name (displays next to logo in navbar)
    - Preview before saving
+   - **Auto-applies to:** Navbar (header) and Footer
+   - Sizing: Auto-proportional (`h-10` in header, `h-8` in footer)
 
 2. **Font Selection**
    - Choose Sans, Serif, Mono fonts
@@ -212,21 +222,49 @@ Admin can customize website appearance without coding:
 
 ## Recent Updates
 
-### 2025-01-31: Admin Customize Panel
+### 2025-01-31: Admin Customize Panel - Complete Implementation
 - ✅ Added `/admin/customize` panel for non-technical admins
-- ✅ Logo upload via Vercel Blob storage
+- ✅ Logo upload via Vercel Blob storage (or external URL)
+- ✅ **Website name customization** (replaces hardcoded site title)
 - ✅ Font customization with Google Fonts
-- ✅ Color scheme editing via TweakCN integration
+- ✅ **Enhanced TweakCN integration** (accepts full CSS output with :root and .dark blocks)
 - ✅ Dynamic CSS injection in root layout
-- ✅ Settings stored in `site_settings` table
+- ✅ Settings stored in `site_settings` table with JSONB flexibility
+- ✅ **Reusable SiteLogo component** (auto-applies across site)
+
+**New Components**:
+- `components/site-logo.tsx` - Reusable logo with auto-proportional sizing
+  - Fetches logo & site name from API
+  - Auto-applies to navbar & footer
+  - Graceful fallback to defaults
+  - Client-side rendering with loading states
 
 **Database Tables**:
-- `site_settings` - Stores logo, fonts, theme_light, theme_dark settings
+- `site_settings` - Stores logo, site_name, fonts, theme_light, theme_dark settings
+  - Migration: `scripts/08-create-site-settings-table.sql`
+  - RLS enabled (public read, authenticated write)
+  - Indexes on `key` and `updated_at`
+  - Auto-updating `updated_at` trigger
 
 **New API Routes**:
 - `POST /api/admin/upload/logo` - Upload logo to Vercel Blob
 - `GET/POST /api/admin/settings` - Manage all settings
 - `GET/PUT/DELETE /api/admin/settings/[key]` - Manage single setting
+- `GET /api/settings/logo` - **Public endpoint** for logo (used by SiteLogo component)
+- `GET /api/settings/site-name` - **Public endpoint** for site name
+
+**Key Features**:
+- ✨ **Auto-proportional logo sizing** (h-10 navbar, h-8 footer)
+- ✨ **Complete TweakCN CSS parsing** (extracts :root and .dark sections)
+- ✨ **Better validation** with helpful error messages
+- ✨ **Fixed .maybeSingle()** for graceful handling of missing settings
+- ✨ **Real-time preview** in admin panel
+- ✨ **No page reload needed** for logo/name changes (client-side fetch)
+
+**Documentation**:
+- `docs/SITE_SETTINGS_TABLE.md` - Complete reference guide
+- `docs/REUSABLE_SETUP_IMPLEMENTATION.md` - Setup wizard documentation
+- Updated AGENTS.md with all features
 
 ---
 

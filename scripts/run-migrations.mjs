@@ -46,6 +46,7 @@ const MIGRATION_FILES = [
   '05-add-buy-link-column.sql',
   '06-add-product-colors-table.sql',
   '07-migrate-existing-products-colors.sql',
+  '08-create-site-settings-table.sql',
 ]
 
 async function runMigration(supabase, filename, sql) {

@@ -8,14 +8,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Palette, Type, Image as ImageIcon, Loader2, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Palette, Type, Image as ImageIcon, Loader2, CheckCircle2, AlertCircle, ExternalLink, Info } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-
-type SettingsValue = 
-  | { url: string; alt: string }
-  | { sans: string; serif: string; mono: string }
-  | Record<string, string>
 
 type Settings = {
   logo?: { url: string; alt: string }
@@ -31,7 +26,6 @@ const AVAILABLE_FONTS = {
 }
 
 export default function CustomizePage() {
-  const [settings, setSettings] = useState<Settings>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
@@ -39,9 +33,9 @@ export default function CustomizePage() {
   // Logo state
   const [logoMode, setLogoMode] = useState<"upload" | "url">("url")
   const [logoUrl, setLogoUrl] = useState("")
-  const [logoAlt, setLogoAlt] = useState("Store Logo")
+  const [logoAlt, setLogoAlt] = useState("Website Logo")
+  const [siteName, setSiteName] = useState("AI For Productivity")
   const [uploadingLogo, setUploadingLogo] = useState(false)
-  const [logoFile, setLogoFile] = useState<File | null>(null)
 
   // Font state
   const [fontSans, setFontSans] = useState("Manrope")
@@ -49,9 +43,9 @@ export default function CustomizePage() {
   const [fontMono, setFontMono] = useState("Geist Mono")
 
   // Theme state
-  const [lightThemeCSS, setLightThemeCSS] = useState("")
-  const [darkThemeCSS, setDarkThemeCSS] = useState("")
+  const [tweakcnCSS, setTweakcnCSS] = useState("")
   const [cssError, setCssError] = useState("")
+  const [cssSuccess, setCssSuccess] = useState("")
 
   // Load settings on mount
   useEffect(() => {
@@ -65,11 +59,16 @@ export default function CustomizePage() {
       const data = await response.json() as { settings: Array<{ key: string; value: unknown }> }
 
       // Populate form fields
+      let lightVars = ""
+      let darkVars = ""
+      
       data.settings?.forEach((setting) => {
         if (setting.key === "logo") {
           const logo = setting.value as { url: string; alt: string }
           setLogoUrl(logo.url)
           setLogoAlt(logo.alt)
+        } else if (setting.key === "site_name") {
+          setSiteName(setting.value as string)
         } else if (setting.key === "fonts") {
           const fonts = setting.value as { sans: string; serif: string; mono: string }
           setFontSans(fonts.sans)
@@ -77,12 +76,25 @@ export default function CustomizePage() {
           setFontMono(fonts.mono)
         } else if (setting.key === "theme_light") {
           const theme = setting.value as Record<string, string>
-          setLightThemeCSS(formatCSSVariables(theme))
+          lightVars = formatCSSVariables(theme)
         } else if (setting.key === "theme_dark") {
           const theme = setting.value as Record<string, string>
-          setDarkThemeCSS(formatCSSVariables(theme))
+          darkVars = formatCSSVariables(theme)
         }
       })
+      
+      // Reconstruct full TweakCN format for editing
+      if (lightVars || darkVars) {
+        let fullCSS = ""
+        if (lightVars) {
+          fullCSS += `:root {\n${lightVars}\n}`
+        }
+        if (darkVars) {
+          if (fullCSS) fullCSS += "\n\n"
+          fullCSS += `.dark {\n${darkVars}\n}`
+        }
+        setTweakcnCSS(fullCSS)
+      }
     } catch (error) {
       console.error("Error fetching settings:", error)
       toast({
@@ -101,6 +113,30 @@ export default function CustomizePage() {
       .join("\n")
   }
 
+  const extractThemeSections = (cssText: string): {
+    light: Record<string, string> | null
+    dark: Record<string, string> | null
+  } => {
+    const result: { light: Record<string, string> | null; dark: Record<string, string> | null } = { 
+      light: null, 
+      dark: null 
+    }
+
+    // Extract :root section
+    const rootMatch = cssText.match(/:root\s*\{([^}]+)\}/s)
+    if (rootMatch) {
+      result.light = parseCSSVariables(rootMatch[1])
+    }
+
+    // Extract .dark section
+    const darkMatch = cssText.match(/\.dark\s*\{([^}]+)\}/s)
+    if (darkMatch) {
+      result.dark = parseCSSVariables(darkMatch[1])
+    }
+
+    return result
+  }
+  
   const parseCSSVariables = (cssText: string): Record<string, string> => {
     const variables: Record<string, string> = {}
     const regex = /--([a-zA-Z0-9-_]+)\s*:\s*([^;]+);/g
@@ -153,8 +189,6 @@ export default function CustomizePage() {
       return
     }
 
-    setLogoFile(file)
-
     // Auto-upload
     setUploadingLogo(true)
     try {
@@ -187,7 +221,6 @@ export default function CustomizePage() {
         description: errorMessage,
         variant: "destructive",
       })
-      setLogoFile(null)
     } finally {
       setUploadingLogo(false)
     }
@@ -197,9 +230,10 @@ export default function CustomizePage() {
     setSaving(true)
     try {
       await saveSetting("logo", { url: logoUrl, alt: logoAlt })
+      await saveSetting("site_name", siteName)
       toast({
         title: "Success",
-        description: "Logo settings saved successfully",
+        description: "Logo and website name saved successfully. Reload page to see changes.",
       })
     } catch (error) {
       console.error("Failed to save logo:", error)
@@ -241,33 +275,37 @@ export default function CustomizePage() {
   const handleSaveTheme = async () => {
     setSaving(true)
     setCssError("")
+    setCssSuccess("")
 
     try {
-      // Parse and validate CSS
-      let lightTheme = {}
-      let darkTheme = {}
-
-      if (lightThemeCSS.trim()) {
-        lightTheme = parseCSSVariables(lightThemeCSS)
-        if (Object.keys(lightTheme).length === 0) {
-          throw new Error("Invalid light theme CSS format")
-        }
+      if (!tweakcnCSS.trim()) {
+        throw new Error("Please paste TweakCN CSS before saving")
       }
 
-      if (darkThemeCSS.trim()) {
-        darkTheme = parseCSSVariables(darkThemeCSS)
-        if (Object.keys(darkTheme).length === 0) {
-          throw new Error("Invalid dark theme CSS format")
-        }
+      // Extract :root and .dark sections from the pasted CSS
+      const sections = extractThemeSections(tweakcnCSS)
+
+      if (!sections.light && !sections.dark) {
+        throw new Error("No valid :root or .dark sections found. Please paste the complete CSS from TweakCN including :root { } and .dark { } blocks.")
+      }
+
+      // Validate that we have some essential variables
+      const essentialVars = ["background", "foreground", "primary"]
+      const hasEssentials = sections.light && essentialVars.some(v => v in sections.light!)
+      
+      if (!hasEssentials && sections.light) {
+        throw new Error("CSS doesn't contain essential color variables like --background, --foreground, --primary. Please copy the full CSS from TweakCN.")
       }
 
       // Save both themes
-      if (Object.keys(lightTheme).length > 0) {
-        await saveSetting("theme_light", lightTheme)
+      if (sections.light && Object.keys(sections.light).length > 0) {
+        await saveSetting("theme_light", sections.light)
+        setCssSuccess(`Found ${Object.keys(sections.light).length} light theme variables`)
       }
 
-      if (Object.keys(darkTheme).length > 0) {
-        await saveSetting("theme_dark", darkTheme)
+      if (sections.dark && Object.keys(sections.dark).length > 0) {
+        await saveSetting("theme_dark", sections.dark)
+        setCssSuccess(prev => prev + ` and ${Object.keys(sections.dark!).length} dark theme variables`)
       }
 
       toast({
@@ -387,21 +425,38 @@ export default function CustomizePage() {
               )}
 
               <div className="space-y-2">
+                <Label htmlFor="site-name">Website Name</Label>
+                <Input
+                  id="site-name"
+                  placeholder="AI For Productivity"
+                  value={siteName}
+                  onChange={(e) => setSiteName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">This will appear next to your logo in the navbar</p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="logo-alt">Logo Alt Text</Label>
                 <Input
                   id="logo-alt"
-                  placeholder="My Store Logo"
+                  placeholder="Website Logo"
                   value={logoAlt}
                   onChange={(e) => setLogoAlt(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">Alternative text for accessibility (used when image fails to load)</p>
               </div>
 
               {logoUrl && (
                 <div className="space-y-2">
                   <Label>Preview</Label>
-                  <div className="rounded border p-4 bg-muted/50">
+                  <div className="rounded border p-8 bg-muted/50 flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={logoUrl} alt={logoAlt} className="h-16 object-contain" />
+                    <img 
+                      src={logoUrl} 
+                      alt={logoAlt} 
+                      className="max-h-16 w-auto object-contain"
+                      style={{ maxWidth: '100%' }}
+                    />
                   </div>
                 </div>
               )}
@@ -490,60 +545,63 @@ export default function CustomizePage() {
               <CardTitle>Color Scheme</CardTitle>
               <CardDescription>Customize your website colors using TweakCN</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Instructions */}
               <Alert>
-                <Palette className="h-4 w-4" />
-                <AlertDescription className="flex items-center justify-between">
-                  <span>Use TweakCN to generate your color scheme visually</span>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href="https://tweakcn.com/editor/theme" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Open TweakCN
-                    </a>
-                  </Button>
+                <Info className="h-4 w-4" />
+                <AlertTitle className="font-semibold">How to customize colors with TweakCN</AlertTitle>
+                <AlertDescription className="mt-2 space-y-2">
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Click the button below to open TweakCN theme editor</li>
+                    <li>Customize your colors visually (light & dark mode)</li>
+                    <li>Scroll down to the &ldquo;Copy Code&rdquo; section in TweakCN</li>
+                    <li>Copy <strong>ONLY</strong> the content from the <code className="text-xs bg-muted px-1 py-0.5 rounded">:root</code> and <code className="text-xs bg-muted px-1 py-0.5 rounded">.dark</code> blocks (including the braces)</li>
+                    <li>Paste the complete CSS into the textarea below</li>
+                    <li>Click &ldquo;Save Color Scheme&rdquo;</li>
+                  </ol>
+                  <div className="flex justify-end pt-2">
+                    <Button variant="default" size="sm" asChild>
+                      <a href="https://tweakcn.com/editor/theme" target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Open TweakCN Editor
+                      </a>
+                    </Button>
+                  </div>
                 </AlertDescription>
               </Alert>
 
+              {/* CSS Input */}
               <div className="space-y-2">
-                <Label htmlFor="light-theme">Light Mode CSS Variables</Label>
+                <Label htmlFor="tweakcn-css" className="text-base font-semibold">TweakCN CSS (Complete Output)</Label>
                 <Textarea
-                  id="light-theme"
-                  placeholder="--background: oklch(1.0000 0 0);
---foreground: oklch(0.2367 0.0587 264.2278);
---primary: oklch(0.4640 0.1131 249.0359);
-..."
-                  value={lightThemeCSS}
+                  id="tweakcn-css"
+                  placeholder={`:root {
+  --background: oklch(1.0000 0 0);
+  --foreground: oklch(0.2367 0.0587 264.2278);
+  --primary: oklch(0.4640 0.1131 249.0359);
+  ...
+}
+
+.dark {
+  --background: oklch(0.0800 0 0);
+  --foreground: oklch(0.9500 0.0025 228.7857);
+  --primary: oklch(0.6692 0.1607 245.0110);
+  ...
+}`}
+                  value={tweakcnCSS}
                   onChange={(e) => {
-                    setLightThemeCSS(e.target.value)
+                    setTweakcnCSS(e.target.value)
                     setCssError("")
+                    setCssSuccess("")
                   }}
-                  className="min-h-[200px] font-mono text-sm"
+                  className="min-h-[400px] font-mono text-xs leading-relaxed"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Copy the variables from the :root section in TweakCN
+                  ⚠️ <strong>Important:</strong> Paste the complete CSS including <code className="bg-muted px-1 py-0.5 rounded">:root &#123; ... &#125;</code> and <code className="bg-muted px-1 py-0.5 rounded">.dark &#123; ... &#125;</code> blocks from TweakCN
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dark-theme">Dark Mode CSS Variables</Label>
-                <Textarea
-                  id="dark-theme"
-                  placeholder="--background: oklch(0.0800 0 0);
---foreground: oklch(0.9500 0.0025 228.7857);
---primary: oklch(0.6692 0.1607 245.0110);
-..."
-                  value={darkThemeCSS}
-                  onChange={(e) => {
-                    setDarkThemeCSS(e.target.value)
-                    setCssError("")
-                  }}
-                  className="min-h-[200px] font-mono text-sm"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Copy the variables from the .dark section in TweakCN
-                </p>
-              </div>
-
+              {/* Error Messages */}
               {cssError && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -551,7 +609,15 @@ export default function CustomizePage() {
                 </Alert>
               )}
 
-              <Button onClick={handleSaveTheme} disabled={saving}>
+              {/* Success Messages */}
+              {cssSuccess && (
+                <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-green-800 dark:text-green-200">{cssSuccess}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button onClick={handleSaveTheme} disabled={saving || !tweakcnCSS.trim()}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                 Save Color Scheme
               </Button>
