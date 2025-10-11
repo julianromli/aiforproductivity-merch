@@ -6,7 +6,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Package, MessageSquare, Menu, X, LogOut, User } from "lucide-react"
+import { LayoutDashboard, Package, MessageSquare, Palette, Menu, X, LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AuthProvider, useAuth } from "@/lib/hooks/use-auth"
 import {
@@ -23,6 +23,7 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Prompts", href: "/admin/prompts", icon: MessageSquare },
+  { name: "Customize", href: "/admin/customize", icon: Palette },
 ]
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {

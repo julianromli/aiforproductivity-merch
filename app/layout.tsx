@@ -5,6 +5,8 @@ import "./globals.css"
 import ClientLayout from "./client-layout"
 
 import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google'
+import { getFontSettings, getThemeSettings } from "@/lib/settings-service"
+import { generateCustomCSS } from "@/lib/theme-generator"
 
 // Initialize fonts
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -65,13 +67,36 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Fetch customization settings
+  const fonts = await getFontSettings()
+  const lightTheme = await getThemeSettings("light")
+  const darkTheme = await getThemeSettings("dark")
+
+  // Generate custom CSS
+  const customCSS = generateCustomCSS(fonts, lightTheme || undefined, darkTheme || undefined)
+
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${geistMono.variable}`}>
+      <head>
+        {customCSS && (
+          <style
+            dangerouslySetInnerHTML={{
+              __html: customCSS,
+            }}
+          />
+        )}
+        {fonts && (
+          <link
+            rel="stylesheet"
+            href={`https://fonts.googleapis.com/css2?family=${fonts.sans.replace(/\s+/g, "+")}:wght@200;300;400;500;600;700;800&family=${fonts.serif.replace(/\s+/g, "+")}:wght@400;500;600;700&family=${fonts.mono.replace(/\s+/g, "+")}:wght@100;200;300;400;500;600;700;800;900&display=swap`}
+          />
+        )}
+      </head>
       <ClientLayout>{children}</ClientLayout>
     </html>
   )
