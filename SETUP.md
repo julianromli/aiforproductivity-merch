@@ -20,7 +20,7 @@ You'll need free accounts on these platforms:
 
 ```bash
 # 1. Clone and install
-git clone <your-repo-url>
+git clone https://github.com/julianromli/aiforproductivity-merch.git
 cd aiforproductivity-merch
 npm install
 
@@ -157,7 +157,7 @@ Visit **[http://localhost:3000](http://localhost:3000)** - you should see the st
 
 #### Option A: One-Click Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/aiforproductivity-merch&env=GEMINI_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=API%20keys%20for%20AI%2C%20database%2C%20and%20storage&envLink=https://github.com/YOUR_USERNAME/aiforproductivity-merch/blob/main/SETUP.md)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/julianromli/aiforproductivity-merch&env=GEMINI_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=API%20keys%20for%20AI%2C%20database%2C%20and%20storage&envLink=https://github.com/julianromli/aiforproductivity-merch/blob/main/SETUP.md)
 
 This will:
 1. Fork the repo to your GitHub

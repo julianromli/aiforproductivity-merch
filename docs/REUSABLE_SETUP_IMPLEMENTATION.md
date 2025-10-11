@@ -172,7 +172,7 @@ npm run dev      # Works immediately!
 ### Button Configuration
 
 ```markdown
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/aiforproductivity-merch&env=GEMINI_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=API%20keys%20for%20Google%20AI%2C%20Supabase%20database%2C%20and%20authentication&envLink=https://github.com/yourusername/aiforproductivity-merch/blob/main/SETUP.md&project-name=aiforproductivity-merch&repository-name=aiforproductivity-merch)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/julianromli/aiforproductivity-merch&env=GEMINI_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=API%20keys%20for%20Google%20AI%2C%20Supabase%20database%2C%20and%20authentication&envLink=https://github.com/julianromli/aiforproductivity-merch/blob/main/SETUP.md&project-name=aiforproductivity-merch&repository-name=aiforproductivity-merch)
 ```
 
 **What it does:**
