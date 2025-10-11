@@ -97,13 +97,13 @@ export function extractThemeSections(cssText: string): {
   const result: { light: ThemeSettings | null; dark: ThemeSettings | null } = { light: null, dark: null }
 
   // Extract :root section
-  const rootMatch = cssText.match(/:root\s*\{([^}]+)\}/s)
+  const rootMatch = cssText.match(/:root\s*\{([^}]+)\}/)
   if (rootMatch) {
     result.light = parseCSSVariables(rootMatch[1])
   }
 
   // Extract .dark section
-  const darkMatch = cssText.match(/\.dark\s*\{([^}]+)\}/s)
+  const darkMatch = cssText.match(/\.dark\s*\{([^}]+)\}/)
   if (darkMatch) {
     result.dark = parseCSSVariables(darkMatch[1])
   }
