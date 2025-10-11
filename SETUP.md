@@ -128,9 +128,12 @@ scripts/04-seed-default-prompts.sql   ← Adds AI prompts
 scripts/05-add-buy-link-column.sql    ← Adds buy link field
 scripts/06-add-product-colors-table.sql     ← Creates colors table
 scripts/07-migrate-existing-products-colors.sql  ← Migrates colors
+scripts/08-create-site-settings-table.sql   ← Creates site settings (NEW!)
 ```
 
 **Tip:** Open each file, copy all contents, paste in SQL Editor, click "Run"
+
+**Note:** Migration 08 is required for the Admin Customize Panel to work (logo, fonts, colors)
 
 ---
 
@@ -235,6 +238,22 @@ Check these migrations ran successfully:
 
 Verify in Supabase Dashboard → **Table Editor** → `products` table
 
+### Admin Customize Panel Not Working
+
+**Solution:**
+1. Ensure migration `08-create-site-settings-table.sql` has been run
+2. Check browser console for errors
+3. Verify Supabase RLS policies are enabled on `site_settings` table
+4. Try clearing browser cache and reload
+
+### Logo/Fonts Not Appearing After Save
+
+**Solution:**
+- Reload the page after saving (settings are injected server-side)
+- Check browser console for API errors
+- Verify logo URL is publicly accessible
+- For uploaded logos, ensure Vercel Blob is properly configured
+
 ### Image Upload Fails
 
 **Solution:**
@@ -247,19 +266,38 @@ Verify in Supabase Dashboard → **Table Editor** → `products` table
 
 After setup is complete:
 
-1. **Customize Your Store**
-   - Go to `/admin/customize` to change logo, colors, fonts
+1. **Customize Your Store** 🎨
+   - Go to `/admin/customize` to personalize your store
+   - **Logo & Branding**:
+     - Upload custom logo (Vercel Blob) or use external URL
+     - Set website name (appears in navbar)
+     - Max 2MB, supports JPEG/PNG/WebP/GIF/SVG
+   - **Fonts**:
+     - Choose from curated Google Fonts
+     - Sans-serif for body text
+     - Serif for headings
+     - Monospace for code
+   - **Colors**:
+     - Use [TweakCN](https://tweakcn.com/editor/theme) for visual theme editing
+     - Copy & paste complete CSS (`:root` and `.dark` blocks)
+     - Instant preview in light/dark mode
    
-2. **Add Products**
+2. **Add Products** 📦
    - Visit `/admin/products` to manage products
+   - Upload product images
+   - Set prices, descriptions, categories
+   - Configure color variants
    
-3. **Configure AI Prompts**
+3. **Configure AI Prompts** 🤖
    - Go to `/admin/prompts` to customize AI generation prompts
+   - Optimize prompts per category
+   - Test generation quality
 
-4. **Read Documentation**
+4. **Read Documentation** 📖
    - `AGENTS.md` - For AI coding agents (Cursor, Windsurf, etc.)
-   - `WARP.md` - Technical reference
+   - `docs/SITE_SETTINGS_TABLE.md` - Customize panel reference
    - `docs/ADMIN_USER_GUIDE.md` - Admin panel guide
+   - `WARP.md` - Technical reference
 
 ---
 
@@ -277,9 +315,57 @@ After setup is complete:
 If you see the storefront at `http://localhost:3000`, you're all set!
 
 **What to do next:**
-1. Visit `/admin/login` to access admin dashboard
-2. Upload your products
-3. Customize your store appearance
-4. Test the AI virtual try-on feature
+1. **Login to Admin** (`/admin/login`)
+   - Use your Supabase credentials
+   - First user becomes admin automatically
+
+2. **Customize Appearance** (`/admin/customize`) ✨
+   - Upload your logo
+   - Set website name
+   - Choose fonts
+   - Design color scheme with TweakCN
+   
+3. **Add Products** (`/admin/products`)
+   - Upload product images
+   - Set prices and descriptions
+   - Add color variants
+
+4. **Test AI Features**
+   - Try virtual try-on on homepage
+   - Upload a photo and see products personalized
+   - Test different AI prompts
+
+5. **Deploy to Production**
+   - Push to GitHub
+   - Connect to Vercel
+   - Configure environment variables
+   - Your store is live! 🚀
+
+**Pro Tips:**
+- 🎨 Use [TweakCN](https://tweakcn.com/editor/theme) for easy theme customization
+- 📸 Optimize product images before upload (recommended: 800x1000px)
+- 🤖 Test AI prompts with different products for best results
+- 🔒 Set up email allowlist for admin access in production
 
 Happy selling! 🛍️
+
+---
+
+## 🆕 What's New (v1.1)
+
+### Admin Customize Panel
+No coding required to customize your store:
+
+- **Logo Management**: Upload or use external URL, auto-applies to navbar & footer
+- **Website Name**: Replace default branding with your store name
+- **Font Customization**: 25+ Google Fonts, instant preview
+- **Color Schemes**: Visual theme editor via TweakCN integration
+- **Real-time Preview**: See changes before saving
+- **Database-Driven**: All settings stored in `site_settings` table
+
+**Documentation**: See `docs/SITE_SETTINGS_TABLE.md` for complete reference
+
+---
+
+**Last Updated**: 2025-01-31  
+**Version**: 1.1.0
