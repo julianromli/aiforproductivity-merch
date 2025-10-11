@@ -54,47 +54,33 @@ An innovative e-commerce platform built with **Next.js 15** featuring:
 
 ## 📦 Quick Start
 
-### Prerequisites
-- Node.js 18+
-- pnpm (recommended) or npm
-- Supabase account
-- Google AI API key (Gemini)
-
-### Installation
+### 🚀 Automated Setup (Recommended)
 
 ```bash
-# Clone repository
+# 1. Clone and install
 git clone https://github.com/yourusername/aiforproductivity-merch.git
 cd aiforproductivity-merch
+npm install
 
-# Install dependencies
-pnpm install
+# 2. Run interactive setup wizard
+npm run setup
 
-# Setup environment variables
-cp .env.example .env.local
-# Edit .env.local with your credentials
-
-# Run database migrations (see SETUP_SUPABASE.md)
-# Then start dev server
-pnpm dev
+# 3. Start development server
+npm run dev
 ```
 
-### Environment Variables
+**That's it!** Visit [http://localhost:3000](http://localhost:3000)
 
-Create `.env.local` with:
+### 📖 Detailed Setup Guide
 
-```bash
-# Google AI
-GEMINI_API_KEY=your_google_ai_key
+For step-by-step instructions, troubleshooting, and deployment:
 
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+👉 **[See SETUP.md](./SETUP.md)** - Complete setup guide (5 minutes)
 
-# Vercel Blob (auto-configured in production)
-BLOB_READ_WRITE_TOKEN=your_blob_token
-```
+### Prerequisites
+
+- Node.js 18+
+- Free accounts: [Google AI](https://aistudio.google.com/), [Supabase](https://supabase.com/), [Vercel](https://vercel.com/)
 
 ## 🔧 Development
 
@@ -114,26 +100,46 @@ pnpm lint
 
 ## 📚 Documentation
 
-- **[WARP.md](./WARP.md)** - Complete project knowledge base (technical reference)
-- **[AGENTS.md](./AGENTS.md)** - AI agent configuration & quick commands
-- **[SETUP_SUPABASE.md](./SETUP_SUPABASE.md)** - Database setup guide
-- **[DOKUMENTASI_AI.md](./DOKUMENTASI_AI.md)** - AI integration guide (Indonesian)
+### For Users
+- **[SETUP.md](./SETUP.md)** - ⭐ **START HERE** - Complete setup guide (5 minutes)
 - **[docs/ADMIN_USER_GUIDE.md](./docs/ADMIN_USER_GUIDE.md)** - Admin dashboard guide (Indonesian)
+
+### For Developers
+- **[AGENTS.md](./AGENTS.md)** - AI coding agent guidelines (Cursor, Windsurf, etc.)
+- **[WARP.md](./WARP.md)** - Technical reference & architecture
+- **[DOKUMENTASI_AI.md](./DOKUMENTASI_AI.md)** - AI integration details (Indonesian)
+
+### Legacy/Advanced
+- **[SETUP_SUPABASE.md](./SETUP_SUPABASE.md)** - Manual database setup (advanced)
 
 ## 🚢 Deployment
 
-**Live Site**: [https://vercel.com/faiz-intifadas-projects-666b7de0/v0-storefront-w-nano-banana-ai-s](https://vercel.com/faiz-intifadas-projects-666b7de0/v0-storefront-w-nano-banana-ai-s)
+### One-Click Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/aiforproductivity-merch&env=GEMINI_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=API%20keys%20for%20Google%20AI%2C%20Supabase%20database%2C%20and%20authentication&envLink=https://github.com/yourusername/aiforproductivity-merch/blob/main/SETUP.md&project-name=aiforproductivity-merch&repository-name=aiforproductivity-merch)
+
+**This will automatically:**
+- Fork the repository to your GitHub
+- Create a new Vercel project
+- Setup Vercel Blob storage
+- Prompt for environment variables
+- Deploy your store
+
+**After clicking deploy:**
+1. Fill in the 4 required environment variables (see [SETUP.md](./SETUP.md))
+2. Wait for deployment (~2 minutes)
+3. Run database migrations in Supabase
+4. Done! 🎉
+
+### Manual Deployment
+
+See [SETUP.md - Deploy to Production](./SETUP.md#-deploy-to-production) for manual deployment guide.
+
+---
+
+**Live Demo**: [https://vercel.com/faiz-intifadas-projects-666b7de0/v0-storefront-w-nano-banana-ai-s](https://vercel.com/faiz-intifadas-projects-666b7de0/v0-storefront-w-nano-banana-ai-s)
 
 **v0.app Project**: [https://v0.app/chat/projects/KFS0eQo54K6](https://v0.app/chat/projects/KFS0eQo54K6)
-
-### Deploy to Vercel
-
-1. Push to GitHub
-2. Import project in Vercel
-3. Add environment variables
-4. Deploy!
-
-See [Deployment Checklist](./WARP.md#-deployment) for details.
 
 ## 🎨 SEO & Metadata
 

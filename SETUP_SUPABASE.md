@@ -2,7 +2,7 @@
 
 ## Step 1: Jalankan SQL Scripts di Supabase
 
-1. Buka Supabase Dashboard: https://lowluqbfhkmhwphlwuqm.supabase.co
+1. Buka Supabase Dashboard: https://supabase.com/dashboard/project/YOUR_PROJECT_ID
 2. Klik **SQL Editor** di sidebar kiri
 3. Jalankan script-script berikut secara berurutan:
 
@@ -23,10 +23,12 @@ Copy paste isi file `scripts/04-seed-default-prompts.sql` dan klik **Run**
 Buka Project Settings di Vercel dan tambahkan environment variables berikut:
 
 \`\`\`bash
-NEXT_PUBLIC_SUPABASE_URL=https://lowluqbfhkmhwphlwuqm.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_secret_RrWFiW6fC4rz0IH7G0Hecg_Rkwf9ODa
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxvd2x1cWJmaGttaHdwaGx3dXFtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTIwNjcxNywiZXhwIjoyMDc0NzgyNzE3fQ.9KluZh6dQRjPrzN9InH5OJmWxnVti1oA0P3957tbif0
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 \`\`\`
+
+**Note:** See `.env.example` for a complete template with detailed comments.
 
 ## Step 3: Install Supabase Package
 

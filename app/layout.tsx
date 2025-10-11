@@ -7,6 +7,10 @@ import ClientLayout from "./client-layout"
 import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google'
 import { getFontSettings, getThemeSettings } from "@/lib/settings-service"
 import { generateCustomCSS } from "@/lib/theme-generator"
+import { validateServerEnvironment } from "@/lib/env-validator"
+
+// Validate environment variables on server startup
+validateServerEnvironment()
 
 // Initialize fonts
 const plusJakartaSans = Plus_Jakarta_Sans({
