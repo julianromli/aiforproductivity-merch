@@ -246,13 +246,28 @@ Verify in Supabase Dashboard → **Table Editor** → `products` table
 3. Verify Supabase RLS policies are enabled on `site_settings` table
 4. Try clearing browser cache and reload
 
+### Logo Upload Fails with "Vercel Blob Not Configured"
+
+**Solution:**
+1. **For Production (Vercel)**:
+   - Go to Vercel Dashboard → Your Project → Storage
+   - Create a Blob store (it auto-configures)
+   - Redeploy your project
+   - See `docs/VERCEL_BLOB_SETUP.md` for details
+
+2. **Alternative** (No Blob needed):
+   - Click "Use URL" mode in Logo Settings
+   - Upload logo to external service (Imgur, Cloudinary, etc.)
+   - Paste the image URL
+   - Save
+
 ### Logo/Fonts Not Appearing After Save
 
 **Solution:**
 - Reload the page after saving (settings are injected server-side)
 - Check browser console for API errors
 - Verify logo URL is publicly accessible
-- For uploaded logos, ensure Vercel Blob is properly configured
+- For uploaded logos, ensure Vercel Blob is configured (see above)
 
 ### Image Upload Fails
 

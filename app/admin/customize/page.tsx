@@ -200,9 +200,27 @@ export default function CustomizePage() {
         body: formData,
       })
 
-      const data = await response.json() as { url?: string; error?: string; details?: string }
+      const data = await response.json() as { 
+        url?: string
+        error?: string
+        details?: string
+        action?: string
+      }
 
       if (!response.ok) {
+        // Handle Vercel Blob not configured error
+        if (response.status === 503 || data.action === "setup_blob") {
+          toast({
+            title: "Vercel Blob Not Configured",
+            description: "Please use 'Use URL' mode to enter an external image URL, or contact your administrator to set up Vercel Blob storage.",
+            variant: "destructive",
+            duration: 8000,
+          })
+          // Auto-switch to URL mode
+          setLogoMode("url")
+          return
+        }
+        
         throw new Error(data.error || data.details || "Upload failed")
       }
 
@@ -385,6 +403,9 @@ export default function CustomizePage() {
                     Use URL
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  💡 Tip: Use URL mode if file upload is not available
+                </p>
               </div>
 
               {/* Upload Mode */}

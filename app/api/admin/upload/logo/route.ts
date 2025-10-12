@@ -38,6 +38,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if Vercel Blob is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error("[logo] BLOB_READ_WRITE_TOKEN not configured")
+      return NextResponse.json(
+        { 
+          error: "Vercel Blob not configured",
+          details: "Please configure Vercel Blob storage in your Vercel project settings, or use 'Use URL' mode to enter an external image URL instead.",
+          action: "setup_blob"
+        },
+        { status: 503 }
+      )
+    }
+
     const formData = await request.formData()
     const file = formData.get("file") as File
 
@@ -65,6 +78,8 @@ export async function POST(request: NextRequest) {
     const extension = file.name.split(".").pop()
     const filename = `logos/logo-${timestamp}.${extension}`
 
+    console.log("[logo] Uploading logo:", filename, "size:", file.size)
+
     // Upload to Vercel Blob
     const blob = await put(filename, file, {
       access: "public",
@@ -81,6 +96,24 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("[logo] Error uploading logo:", error)
-    return NextResponse.json({ error: "Failed to upload logo", details: String(error) }, { status: 500 })
+    
+    // Provide more specific error messages
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const isConfigError = errorMessage.toLowerCase().includes('token') || 
+                         errorMessage.toLowerCase().includes('unauthorized') ||
+                         errorMessage.toLowerCase().includes('blob')
+    
+    if (isConfigError) {
+      return NextResponse.json({ 
+        error: "Vercel Blob configuration error",
+        details: "Please set up Vercel Blob storage or use 'Use URL' mode to enter an external image URL.",
+        techDetails: errorMessage
+      }, { status: 503 })
+    }
+    
+    return NextResponse.json({ 
+      error: "Failed to upload logo", 
+      details: errorMessage 
+    }, { status: 500 })
   }
 }
