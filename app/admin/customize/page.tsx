@@ -46,6 +46,7 @@ export default function CustomizePage() {
   const [tweakcnCSS, setTweakcnCSS] = useState("")
   const [cssError, setCssError] = useState("")
   const [cssSuccess, setCssSuccess] = useState("")
+  const [defaultTheme, setDefaultTheme] = useState<"light" | "dark" | "system">("system")
 
   // Load settings on mount
   useEffect(() => {
@@ -69,6 +70,8 @@ export default function CustomizePage() {
           setLogoAlt(logo.alt)
         } else if (setting.key === "site_name") {
           setSiteName(setting.value as string)
+        } else if (setting.key === "default_theme") {
+          setDefaultTheme(setting.value as "light" | "dark" | "system")
         } else if (setting.key === "fonts") {
           const fonts = setting.value as { sans: string; serif: string; mono: string }
           setFontSans(fonts.sans)
@@ -296,8 +299,17 @@ export default function CustomizePage() {
     setCssSuccess("")
 
     try {
+      // Save default theme preference
+      await saveSetting("default_theme", defaultTheme)
+      
       if (!tweakcnCSS.trim()) {
-        throw new Error("Please paste TweakCN CSS before saving")
+        // If only saving default theme without CSS
+        toast({
+          title: "Success",
+          description: "Default theme preference saved. Reload page to see changes.",
+        })
+        setSaving(false)
+        return
       }
 
       // Extract :root and .dark sections from the pasted CSS
@@ -567,6 +579,24 @@ export default function CustomizePage() {
               <CardDescription>Customize your website colors using TweakCN</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Default Theme Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="default-theme" className="text-base font-semibold">Default Theme</Label>
+                <Select value={defaultTheme} onValueChange={(value: "light" | "dark" | "system") => setDefaultTheme(value)}>
+                  <SelectTrigger id="default-theme">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">☀️ Light Mode (Always Light)</SelectItem>
+                    <SelectItem value="dark">🌙 Dark Mode (Always Dark)</SelectItem>
+                    <SelectItem value="system">💻 System Preference (Follow Device)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Set the default theme that all visitors will see. System preference follows the user's device settings.
+                </p>
+              </div>
+
               {/* Instructions */}
               <Alert>
                 <Info className="h-4 w-4" />
@@ -638,9 +668,9 @@ export default function CustomizePage() {
                 </Alert>
               )}
 
-              <Button onClick={handleSaveTheme} disabled={saving || !tweakcnCSS.trim()}>
+              <Button onClick={handleSaveTheme} disabled={saving}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                Save Color Scheme
+                Save Theme Settings
               </Button>
             </CardContent>
           </Card>

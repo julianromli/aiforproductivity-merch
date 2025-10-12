@@ -52,6 +52,21 @@ Stores the website name/title that appears next to the logo in the navbar.
 "AI For Productivity"
 ```
 
+### `default_theme`
+Stores the default theme preference that all visitors will see.
+
+**Type**: `"light" | "dark" | "system"`
+
+**Options**:
+- `"light"` - Always show light mode
+- `"dark"` - Always show dark mode  
+- `"system"` - Follow user's device preference (default)
+
+**Example**:
+```json
+"system"
+```
+
 ### `fonts`
 Stores font family selections for sans, serif, and monospace fonts.
 
@@ -164,6 +179,7 @@ The migration automatically inserts default settings:
 INSERT INTO site_settings (key, value) VALUES
   ('logo', '{"url": "/placeholder.svg", "alt": "Website Logo"}'::jsonb),
   ('site_name', '"AI For Productivity"'::jsonb),
+  ('default_theme', '"system"'::jsonb),
   ('fonts', '{"sans": "Manrope", "serif": "Instrument Serif", "mono": "Geist Mono"}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
 ```

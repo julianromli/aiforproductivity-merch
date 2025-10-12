@@ -59,5 +59,6 @@ CREATE POLICY "Allow authenticated users to modify site_settings"
 INSERT INTO site_settings (key, value) VALUES
   ('logo', '{"url": "/placeholder.svg", "alt": "Website Logo"}'::jsonb),
   ('site_name', '"AI For Productivity"'::jsonb),
+  ('default_theme', '"system"'::jsonb),
   ('fonts', '{"sans": "Manrope", "serif": "Instrument Serif", "mono": "Geist Mono"}'::jsonb)
 ON CONFLICT (key) DO NOTHING;

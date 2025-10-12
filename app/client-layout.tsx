@@ -5,6 +5,7 @@ import type React from "react"
 import { Analytics } from "@vercel/analytics/next"
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
+import { ThemeApplier } from "@/components/theme-applier"
 
 // Separate component for search params handling
 function SearchParamsHandler() {
@@ -20,6 +21,7 @@ export default function ClientLayout({
 }>) {
   return (
     <body className="font-sans antialiased">
+      <ThemeApplier />
       <Suspense fallback={null}>
         <SearchParamsHandler />
       </Suspense>

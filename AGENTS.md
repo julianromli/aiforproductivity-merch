@@ -157,7 +157,8 @@ Admin can customize website appearance without coding:
    - Google Fonts integration
    - Changes require page reload
 
-3. **Color Scheme**
+3. **Color Scheme & Theme**
+   - **Default Theme**: Choose Light, Dark, or System preference for all visitors
    - Use [TweakCN](https://tweakcn.com/editor/theme) for visual theme editing
    - Paste CSS variables for light/dark mode
    - Supports semantic tokens from globals.css
