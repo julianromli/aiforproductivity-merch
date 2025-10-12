@@ -100,6 +100,8 @@ export default async function RootLayout({
             href={`https://fonts.googleapis.com/css2?family=${fonts.sans.replace(/\s+/g, "+")}:wght@200;300;400;500;600;700;800&family=${fonts.serif.replace(/\s+/g, "+")}:wght@400;500;600;700&family=${fonts.mono.replace(/\s+/g, "+")}:wght@100;200;300;400;500;600;700;800;900&display=swap`}
           />
         )}
+        <link rel="icon" href="/api/favicon" type="image/x-icon" />
+        <link rel="shortcut icon" href="/api/favicon" type="image/x-icon" />
       </head>
       <ClientLayout>{children}</ClientLayout>
     </html>
