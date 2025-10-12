@@ -731,8 +731,8 @@ export default function BananaSportswearStorefront() {
                   }}
                 >
                   <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-all duration-300 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2">
-                      <Search className="w-6 h-6 text-foreground" />
+                    <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 bg-background/90 dark:bg-foreground/90 backdrop-blur-sm rounded-full p-2 shadow-lg">
+                      <Search className="w-6 h-6 text-foreground dark:text-background" />
                     </div>
                   </div>
                   <AspectRatio ratio={4 / 5}>
