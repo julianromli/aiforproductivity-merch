@@ -11,6 +11,14 @@
 -- 4. Wait for success message
 -- 
 -- That's it! Your database is ready.
+-- 
+-- LAST UPDATED: 2025-02-01
+-- RECENT CHANGES:
+-- - Added product_colors table for color variants support
+-- - Products can now have multiple color options (optional)
+-- - Each color has its own image (Vercel Blob URL)
+-- - Added site_settings table for customizable site appearance
+-- - All image URLs use Vercel Blob Storage in production
 -- ============================================================================
 
 -- ============================================================================
@@ -28,12 +36,17 @@ CREATE TABLE IF NOT EXISTS products (
   currency VARCHAR(3) DEFAULT 'USD',
   category VARCHAR(100) NOT NULL,
   description TEXT,
-  image_url VARCHAR(500) NOT NULL,
+  image_url VARCHAR(500) NOT NULL, -- Vercel Blob URL. Used as fallback or for products without color variants
   is_active BOOLEAN DEFAULT true,
   sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add comments
+COMMENT ON TABLE products IS 'Main product catalog';
+COMMENT ON COLUMN products.image_url IS 'Vercel Blob URL - main product image (used for products without color variants or as fallback)';
+COMMENT ON COLUMN products.buy_link IS 'External purchase link (Tokopedia, Shopee, etc.)';
 
 -- AI Prompts Table
 CREATE TABLE IF NOT EXISTS ai_prompts (
@@ -136,6 +149,14 @@ ON CONFLICT (slug) DO NOTHING;
 -- ============================================================================
 -- MIGRATION 03: SEED SAMPLE PRODUCTS
 -- ============================================================================
+-- 
+-- NOTE: These are sample products with placeholder image paths.
+-- In production, replace image URLs with Vercel Blob URLs after uploading
+-- via the admin panel: /admin/products
+-- 
+-- Example Vercel Blob URL format:
+-- https://xxx.public.blob.vercel-storage.com/product-image-abc123.jpg
+-- ============================================================================
 
 INSERT INTO products (name, price, currency, category, description, image_url, is_active, sort_order) VALUES
   ('Nike ZoomX Vomero Plus', 180000, 'IDR', 'APPAREL', 'Premium running shoes with ZoomX foam technology', '/products/nike-vomero.jpeg', true, 1),
@@ -197,6 +218,20 @@ END $$;
 -- ============================================================================
 -- MIGRATION 06: ADD PRODUCT COLORS TABLE
 -- ============================================================================
+-- 
+-- PURPOSE: Support multiple color variants per product
+-- FEATURES:
+-- - Each product can have multiple colors (or none for single-image products)
+-- - Each color has its own product image (stored as Vercel Blob URL)
+-- - One color marked as default (displayed first on product page)
+-- - Admin can add colors during product creation or edit later
+-- - Optional: Products without color variants just use products.image_url
+-- 
+-- ADMIN WORKFLOW:
+-- 1. Create product → Toggle "Use Color Variants" ON/OFF
+-- 2. If ON: Add colors with individual images during creation
+-- 3. If OFF: Upload single main image (no color variants)
+-- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -206,12 +241,18 @@ CREATE TABLE IF NOT EXISTS product_colors (
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   color_name VARCHAR(50) NOT NULL,
   color_hex VARCHAR(7) NOT NULL,
-  image_url VARCHAR(500) NOT NULL,
+  image_url VARCHAR(500) NOT NULL, -- Vercel Blob URL (e.g., https://xxx.public.blob.vercel-storage.com/xxx)
   is_default BOOLEAN DEFAULT false,
   sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add comments
+COMMENT ON TABLE product_colors IS 'Color variants for products with multiple color options';
+COMMENT ON COLUMN product_colors.image_url IS 'Vercel Blob URL for this color variant image';
+COMMENT ON COLUMN product_colors.is_default IS 'Default color shown first on product page';
+COMMENT ON COLUMN product_colors.sort_order IS 'Display order on product page';
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_product_colors_product_id ON product_colors(product_id);
@@ -244,6 +285,18 @@ CREATE TRIGGER update_product_colors_updated_at
 
 -- ============================================================================
 -- MIGRATION 07: MIGRATE EXISTING PRODUCTS TO HAVE DEFAULT COLOR
+-- ============================================================================
+-- 
+-- PURPOSE: Auto-create a default color variant for existing products
+-- BEHAVIOR:
+-- - Creates a "Black" color variant for any product without colors
+-- - Uses the product's main image_url as the color's image
+-- - Sets as default color (is_default = true)
+-- - This ensures all existing products work with the color variants system
+-- 
+-- NOTE: For new products, admins can choose:
+-- - Add colors during creation (toggle ON)
+-- - Skip colors and use main image only (toggle OFF)
 -- ============================================================================
 
 INSERT INTO product_colors (product_id, color_name, color_hex, image_url, is_default, sort_order)
@@ -331,11 +384,27 @@ ON CONFLICT (key) DO NOTHING;
 -- ✅ All tables created
 -- ✅ Sample data seeded
 -- ✅ Security policies configured
+-- ✅ Color variants system ready
+-- ✅ Site settings customization enabled
+-- 
+-- DATABASE SCHEMA OVERVIEW:
+-- - products: Main catalog (with optional main image)
+-- - product_colors: Color variants (each with own Vercel Blob image)
+-- - categories: Product categories with AI prompt templates
+-- - ai_prompts: AI image generation prompts per product
+-- - site_settings: Customizable logo, fonts, theme (admin panel)
 -- 
 -- NEXT STEPS:
 -- 1. Start your app: npm run dev
 -- 2. Access admin: http://localhost:3000/admin/login
--- 3. Customize your store via admin panel
+-- 3. Create products with color variants: /admin/products/new
+-- 4. Customize site appearance: /admin/customize
+-- 5. Upload images via admin panel (auto-uploads to Vercel Blob)
 -- 
--- For help, see: SETUP.md
+-- IMPORTANT:
+-- - All product images should be uploaded via admin panel
+-- - Images automatically stored in Vercel Blob Storage
+-- - Sample products use placeholder paths - replace in production
+-- 
+-- For detailed help, see: SETUP.md and AGENTS.md
 -- ============================================================================

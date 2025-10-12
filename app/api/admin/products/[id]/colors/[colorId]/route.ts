@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { del } from "@vercel/blob"
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -70,14 +71,26 @@ export async function DELETE(
       )
     }
 
-    // Check if deleting the default color
+    // Get color details before deletion (for blob cleanup and default check)
     const { data: targetColor } = await supabase
       .from("product_colors")
-      .select("is_default")
+      .select("is_default, image_url")
       .eq("id", colorId)
       .single()
 
-    // Delete the color
+    // Delete image from Vercel Blob storage if applicable
+    if (targetColor?.image_url && targetColor.image_url.includes("blob.vercel-storage.com")) {
+      try {
+        console.log("[v0] Deleting blob file:", targetColor.image_url)
+        await del(targetColor.image_url)
+        console.log("[v0] Blob file deleted successfully")
+      } catch (blobError) {
+        console.error("[v0] Failed to delete blob file (continuing with DB deletion):", blobError)
+        // Continue with DB deletion even if blob deletion fails
+      }
+    }
+
+    // Delete the color from database
     const { error } = await supabase.from("product_colors").delete().eq("id", colorId)
 
     if (error) {

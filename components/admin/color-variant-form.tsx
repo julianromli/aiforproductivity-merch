@@ -5,23 +5,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Upload, Loader2 } from "lucide-react"
 import { COLOR_MAP, COLOR_OPTIONS, type ColorName } from "@/lib/color-constants"
 import type { ProductColor } from "@/lib/types"
+import type { LocalColor } from "./local-color-variant-list"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 
 interface ColorVariantFormProps {
-  productId: string
-  color?: ProductColor | null
+  productId?: string
+  color?: ProductColor | LocalColor | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  onSuccess: (colorData?: LocalColor) => void
+  mode?: "api" | "local"
 }
 
-export function ColorVariantForm({ productId, color, open, onOpenChange, onSuccess }: ColorVariantFormProps) {
+export function ColorVariantForm({ productId, color, open, onOpenChange, onSuccess, mode = "api" }: ColorVariantFormProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -30,8 +31,9 @@ export function ColorVariantForm({ productId, color, open, onOpenChange, onSucce
     color_name: (color?.color_name as ColorName) || ("Black" as ColorName),
     color_hex: color?.color_hex || COLOR_MAP.Black,
     image_url: color?.image_url || "",
-    is_default: color?.is_default || false,
   })
+  const [hexError, setHexError] = useState<string | null>(null)
+  const isCustomColor = formData.color_name === "Custom"
 
   // Reset form data when dialog opens/closes or color prop changes
   useEffect(() => {
@@ -40,8 +42,8 @@ export function ColorVariantForm({ productId, color, open, onOpenChange, onSucce
         color_name: (color?.color_name as ColorName) || ("Black" as ColorName),
         color_hex: color?.color_hex || COLOR_MAP.Black,
         image_url: color?.image_url || "",
-        is_default: color?.is_default || false,
       })
+      setHexError(null)
     }
   }, [open, color])
 
@@ -51,6 +53,22 @@ export function ColorVariantForm({ productId, color, open, onOpenChange, onSucce
       color_name: colorName,
       color_hex: COLOR_MAP[colorName],
     })
+    setHexError(null)
+  }
+
+  const validateHex = (hex: string): boolean => {
+    const hexRegex = /^#[0-9A-Fa-f]{6}$/
+    return hexRegex.test(hex)
+  }
+
+  const handleHexChange = (hex: string) => {
+    setFormData({ ...formData, color_hex: hex })
+    
+    if (hex && !validateHex(hex)) {
+      setHexError("Invalid hex format. Use #RRGGBB (e.g., #FF5733)")
+    } else {
+      setHexError(null)
+    }
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,15 +137,45 @@ export function ColorVariantForm({ productId, color, open, onOpenChange, onSucce
       return
     }
 
+    // Validate hex code for custom colors
+    if (isCustomColor && !validateHex(formData.color_hex)) {
+      toast({
+        title: "Error",
+        description: "Mohon masukkan hex code yang valid (format: #RRGGBB)",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Local mode: return data without API call
+    if (mode === "local") {
+      const colorData: LocalColor = {
+        color_name: formData.color_name,
+        color_hex: formData.color_hex,
+        image_url: formData.image_url,
+        is_default: false, // Parent will handle default logic
+      }
+      
+      toast({
+        title: "Success",
+        description: `Color variant berhasil ${color ? "diupdate" : "ditambahkan"}`,
+      })
+      
+      onSuccess(colorData)
+      onOpenChange(false)
+      return
+    }
+
+    // API mode: existing logic
     try {
       setLoading(true)
 
-      const url = color
+      const url = color && 'id' in color
         ? `/api/admin/products/${productId}/colors/${color.id}`
         : `/api/admin/products/${productId}/colors`
 
       const response = await fetch(url, {
-        method: color ? "PUT" : "POST",
+        method: color && 'id' in color ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
@@ -188,10 +236,32 @@ export function ColorVariantForm({ productId, color, open, onOpenChange, onSucce
             </Select>
           </div>
 
-          {/* Hex Code (Read-only) */}
+          {/* Hex Code */}
           <div className="space-y-2">
-            <Label htmlFor="color-hex">Hex Code</Label>
-            <Input id="color-hex" value={formData.color_hex} disabled />
+            <Label htmlFor="color-hex">
+              Hex Code {isCustomColor && <span className="text-destructive">*</span>}
+            </Label>
+            <div className="relative">
+              <Input
+                id="color-hex"
+                value={formData.color_hex}
+                onChange={(e) => handleHexChange(e.target.value)}
+                disabled={!isCustomColor}
+                placeholder="#000000"
+                maxLength={7}
+                className={hexError ? "border-destructive" : ""}
+              />
+              {isCustomColor && (
+                <div
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2"
+                  style={{ backgroundColor: validateHex(formData.color_hex) ? formData.color_hex : "#CCCCCC" }}
+                />
+              )}
+            </div>
+            {hexError && <p className="text-xs text-destructive">{hexError}</p>}
+            {isCustomColor && !hexError && (
+              <p className="text-xs text-muted-foreground">Enter a valid hex color code (e.g., #FF5733)</p>
+            )}
           </div>
 
           {/* Image Upload */}
@@ -231,21 +301,6 @@ export function ColorVariantForm({ productId, color, open, onOpenChange, onSucce
               )}
             </div>
             <p className="text-sm text-muted-foreground">Upload image produk dengan warna yang sesuai (max 5MB)</p>
-          </div>
-
-          {/* Set as Default */}
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="space-y-0.5">
-              <Label htmlFor="is-default" className="text-base font-medium">
-                Set as Default Color
-              </Label>
-              <p className="text-sm text-muted-foreground">Warna ini akan ditampilkan pertama kali</p>
-            </div>
-            <Switch
-              id="is-default"
-              checked={formData.is_default}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_default: checked })}
-            />
           </div>
         </div>
 

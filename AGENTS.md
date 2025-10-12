@@ -139,6 +139,37 @@ Commit types: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`
 3. Use ShadCN Table/Form components
 4. Run security advisors after DB changes
 
+### Product Management with Color Variants
+**Location**: `/admin/products/new` or `/admin/products/[id]/edit`
+
+Creating products with optional color variants:
+
+1. **Create Product with Color Variants** (default workflow):
+   - Fill product details (name, price, category, description)
+   - Keep "Use Color Variants" toggle **ON**
+   - Click "Add First Color" or "Add Another Color"
+   - For each color: Select color, upload image, save
+   - First color automatically becomes default
+   - Submit form → Product + all colors created together
+   
+2. **Create Product without Color Variants** (for single-image products):
+   - Fill product details
+   - Toggle "Use Color Variants" **OFF**
+   - Upload single product image in the right sidebar
+   - Color section will hide
+   - Submit form → Product created with main image only
+   
+3. **Edit Existing Products**:
+   - Products with colors: Toggle locked, use color list to add/edit/delete
+   - Products without colors: Can enable toggle and add colors
+   - Set default color using dropdown (edit mode only)
+   - Main image syncs with default color's image
+
+**Components Used**:
+- `LocalColorVariantList` - Create mode (local state)
+- `ColorVariantList` - Edit mode (API-based)
+- `ColorVariantForm` - Shared form for both modes (dual mode support)
+
 ### Admin Customization (New Feature)
 **Location**: `/admin/customize`
 
@@ -223,6 +254,44 @@ Admin can customize website appearance without coding:
 
 ## Recent Updates
 
+### 2025-02-01: Product Color Variants - Integrated into Product Creation
+- ✅ **Color variants now available during product creation** (no need to edit after creation)
+- ✅ **Optional color variants toggle** - disable for products without color options (accessories, etc.)
+- ✅ **Local color management in create mode** - add/edit/delete colors before submitting
+- ✅ **Smart validation** - requires colors OR main image based on toggle state
+- ✅ **Auto-create colors on product submission** - seamless one-step process
+- ✅ **Edit mode protection** - toggle locked if product already has colors
+
+**New Components**:
+- `components/admin/local-color-variant-list.tsx` - Local state color management for create mode
+  - No API calls until product is created
+  - First color auto-set as default
+  - Add/edit/delete functionality with validation
+
+**Updated Components**:
+- `components/admin/product-form.tsx` - Added color variants section to create mode
+  - "Use Color Variants" toggle switch
+  - Conditional validation based on toggle
+  - Auto-creates colors on product submission
+  - Graceful error handling for partial failures
+  
+- `components/admin/color-variant-form.tsx` - Dual mode support
+  - `mode="api"` - Makes API calls (edit mode)
+  - `mode="local"` - Returns data to parent (create mode)
+  - Reusable across both workflows
+
+**Product Creation Workflows**:
+1. **With Color Variants** (default):
+   - Toggle ON → Add colors (min 1) → Each color has own image → Submit creates product + all colors
+   
+2. **Without Color Variants** (for accessories/single-image products):
+   - Toggle OFF → Upload single main image → Color section hidden → Submit creates product only
+
+**Database Schema** (no changes needed):
+- `products.image_url` - Used for non-color-variant products
+- `product_colors` table - Empty for products without color variants
+- Existing structure supports both use cases
+
 ### 2025-01-31: Admin Customize Panel - Complete Implementation
 - ✅ Added `/admin/customize` panel for non-technical admins
 - ✅ Logo upload via Vercel Blob storage (or external URL)
@@ -269,5 +338,5 @@ Admin can customize website appearance without coding:
 
 ---
 
-**Last Updated**: 2025-01-31  
+**Last Updated**: 2025-02-01  
 **Maintained By**: Agent + User collaboration
