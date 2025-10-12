@@ -108,15 +108,34 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...your_token
 
 ### Step 3: Setup Database (2 minutes)
 
-#### Option A: Automated (If setup wizard available)
+#### Option A: One-Click SQL (Easiest! ⭐)
+
+**Perfect for beginners - just copy and paste ONCE!**
+
+1. Go to your **[Supabase Project Dashboard](https://supabase.com/dashboard)**
+2. Click **SQL Editor** in the sidebar
+3. Click **"New Query"**
+4. Open file: `scripts/all-migrations.sql`
+5. **Copy the entire file** (Ctrl+A, Ctrl+C)
+6. **Paste into SQL Editor** (Ctrl+V)
+7. Click **"Run"** button
+8. ✅ Done! All tables, data, and security configured
+
+**This runs all 8 migrations at once** - no need to run files individually!
+
+#### Option B: Automated Script
 
 ```bash
 npm run setup:db
 ```
 
-#### Option B: Manual via Supabase Dashboard
+Runs all migrations automatically via command line.
 
-1. Go to your **[Supabase Project Dashboard](https://supabase.com/dashboard)**
+#### Option C: Individual Files (Advanced)
+
+If you prefer to run migrations one by one:
+
+1. Go to **[Supabase Project Dashboard](https://supabase.com/dashboard)**
 2. Click **SQL Editor** in the sidebar
 3. Run each SQL file in order (copy-paste and click "Run"):
 
@@ -128,12 +147,10 @@ scripts/04-seed-default-prompts.sql   ← Adds AI prompts
 scripts/05-add-buy-link-column.sql    ← Adds buy link field
 scripts/06-add-product-colors-table.sql     ← Creates colors table
 scripts/07-migrate-existing-products-colors.sql  ← Migrates colors
-scripts/08-create-site-settings-table.sql   ← Creates site settings (NEW!)
+scripts/08-create-site-settings-table.sql   ← Creates site settings
 ```
 
-**Tip:** Open each file, copy all contents, paste in SQL Editor, click "Run"
-
-**Note:** Migration 08 is required for the Admin Customize Panel to work (logo, fonts, colors)
+**OR** use the combined file: `scripts/all-migrations.sql` (contains all 8 migrations)
 
 ---
 

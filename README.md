@@ -71,11 +71,13 @@ npm run dev
 
 **That's it!** Visit [http://localhost:3000](http://localhost:3000)
 
-### 📖 Detailed Setup Guide
+### 📖 Setup Guides
 
-For step-by-step instructions, troubleshooting, and deployment:
+Choose the guide that fits your experience level:
 
-👉 **[See SETUP.md](./SETUP.md)** - Complete setup guide (5 minutes)
+- 🎯 **[QUICK_SETUP_NO_CODE.md](./docs/QUICK_SETUP_NO_CODE.md)** - ⭐ **For non-technical users** (10 minutes)
+- 🇮🇩 **[QUICK_SETUP_NO_CODE_INDO.md](./docs/QUICK_SETUP_NO_CODE_INDO.md)** - ⭐ **Untuk pemula (Bahasa Indonesia)** (10 menit)
+- 📚 **[SETUP.md](./SETUP.md)** - Complete setup guide for developers (5 minutes)
 
 ### Prerequisites
 
@@ -102,6 +104,7 @@ pnpm lint
 
 ### For Users
 - **[SETUP.md](./SETUP.md)** - ⭐ **START HERE** - Complete setup guide (5 minutes)
+- **[docs/QUICK_SETUP_NO_CODE_INDO.md](./docs/QUICK_SETUP_NO_CODE_INDO.md)** - 🇮🇩 Panduan setup untuk pemula (Bahasa Indonesia)
 - **[docs/ADMIN_USER_GUIDE.md](./docs/ADMIN_USER_GUIDE.md)** - Admin dashboard guide (Indonesian)
 
 ### For Developers

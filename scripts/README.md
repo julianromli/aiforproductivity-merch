@@ -2,7 +2,25 @@
 
 This folder contains SQL migration scripts for setting up the Supabase database.
 
-## Migration Files (Run in Order)
+## 🚀 Quick Setup (Recommended)
+
+**For the easiest setup, use the combined migration file:**
+
+```sql
+scripts/all-migrations.sql  ← Contains ALL migrations in one file
+```
+
+**How to use:**
+1. Open Supabase Dashboard → SQL Editor
+2. Copy and paste the entire `all-migrations.sql` file
+3. Click "Run"
+4. ✅ Done! All tables, data, and security configured
+
+This runs all 8 migrations at once - perfect for first-time setup!
+
+---
+
+## Migration Files (Run in Order - Advanced)
 
 ### Core Schema
 
