@@ -1,8 +1,8 @@
-import { GoogleGenAI } from "@google/genai"
+import { generateImageWithByteplus } from "@/lib/byteplus-client"
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase"
 
-console.log("[v0] Gemini API key available:", !!process.env.GEMINI_API_KEY)
+console.log("[v0] BytePlus API key available:", !!process.env.BYTEPLUS_API_KEY)
 
 async function convertImageToSupportedFormat(file: File): Promise<{ buffer: Buffer; mimeType: string }> {
   console.log("[v0] Converting image format:", file.type, "size:", file.size)
@@ -190,75 +190,30 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Generated prompt length:", prompt.length)
     console.log("[v0] Prompt preview:", prompt.substring(0, 100) + "...")
 
-    console.log("[v0] Initializing Google GenAI SDK...")
-    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
-
     const base64UserPhoto = convertedUserPhoto.buffer.toString("base64")
     const base64ProductImage = convertedProductImage.buffer.toString("base64")
 
-    console.log("[v0] Preparing to call generateContent with Google GenAI...")
-    const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: convertedUserPhoto.mimeType,
-                data: base64UserPhoto,
-              },
-            },
-            {
-              inlineData: {
-                mimeType: convertedProductImage.mimeType,
-                data: base64ProductImage,
-              },
-            },
-          ],
-        },
-      ],
-      config: {
-        responseModalities: ["IMAGE"],
-        imageConfig: {
-          aspectRatio: "4:5",
-        },
-      },
+    console.log("[v0] Calling BytePlus SeeDream v4.5 API...")
+    const result = await generateImageWithByteplus({
+      prompt: prompt,
+      images: [
+        { data: base64UserPhoto, mimeType: convertedUserPhoto.mimeType },
+        { data: base64ProductImage, mimeType: convertedProductImage.mimeType }
+      ]
     })
 
-    console.log("[v0] generateContent completed")
-
-    console.log("[v0] Response candidates:", result.candidates?.length || 0)
-
-    if (!result.candidates || result.candidates.length === 0) {
-      console.log("[v0] No candidates in response")
-      return NextResponse.json({ error: "No image was generated" }, { status: 500 })
+    if (result.error) {
+      console.log("[v0] BytePlus generation error:", result.error)
+      return NextResponse.json({ error: result.error }, { status: 500 })
     }
-
-    const candidate = result.candidates[0]
-    const parts = candidate.content?.parts
-    console.log("[v0] Parts in response:", parts?.length || 0)
-
-    const imagePart = parts?.find((part: any) => part.inlineData && part.inlineData.mimeType?.startsWith("image/"))
-
-    if (!imagePart?.inlineData?.data) {
-      console.log("[v0] No image data found in response")
-      return NextResponse.json({ error: "No image was generated" }, { status: 500 })
-    }
-
-    console.log("[v0] Image data found, mimeType:", imagePart.inlineData.mimeType)
-
-    const base64Image = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`
-    console.log("[v0] Base64 image created, length:", base64Image.length)
 
     console.log("[v0] Successfully generated model image for:", productName)
-    console.log("[v0] Usage metadata:", result.usageMetadata)
+    console.log("[v0] Usage metadata:", result.usage)
 
     return NextResponse.json({
-      imageUrl: base64Image,
+      imageUrl: result.imageUrl,
       productName,
-      usage: result.usageMetadata,
+      usage: result.usage,
     })
   } catch (error) {
     console.error("[v0] Error in POST handler:", error)
