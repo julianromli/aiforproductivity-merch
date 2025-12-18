@@ -3,7 +3,7 @@
 ## 🎯 Project Snapshot
 - **Type**: Next.js 15 e-commerce storefront (single project, not monorepo)
 - **Stack**: Next.js 15 + TypeScript 5 + Supabase + ShadCN UI + Tailwind CSS 4
-- **Features**: Admin dashboard, AI-powered product image generation (Gemini 2.5 Flash)
+- **Features**: Admin dashboard, AI-powered product image generation (BytePlus SeeDream v4.5)
 - **Note**: Sub-directories have detailed AGENTS.md → always check nearest file first
 
 ## ⚡ Root Setup Commands

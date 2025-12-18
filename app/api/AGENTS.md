@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
 - **Settings routes**: `app/api/admin/settings/route.ts` (JSONB pattern)
 - **Upload route**: `app/api/admin/upload/logo/route.ts` (Vercel Blob)
 - **Public settings**: `app/api/settings/logo/route.ts` (no auth)
-- **AI generation**: `app/api/generate-image/route.ts` (Gemini integration)
+- **AI generation**: `app/api/generate-image/route.ts` (BytePlus SeeDream v4.5 integration)
 
 ## 🔍 JIT Index Hints
 
