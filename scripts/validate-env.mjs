@@ -39,10 +39,10 @@ function log(message, color = 'reset') {
 // Environment variables configuration
 const ENV_VARS = [
   {
-    name: 'GEMINI_API_KEY',
+    name: 'BYTEPLUS_API_KEY',
     required: true,
-    description: 'Google AI API key for virtual try-on',
-    setupUrl: 'https://aistudio.google.com/app/apikey',
+    description: 'BytePlus SeeDream API key for virtual try-on',
+    setupUrl: 'https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey',
     validate: (val) => val && val.length > 10 && !val.includes('your_'),
   },
   {

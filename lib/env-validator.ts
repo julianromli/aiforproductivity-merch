@@ -14,10 +14,10 @@ interface EnvConfig {
 
 const ENV_VARIABLES: EnvConfig[] = [
   {
-    name: 'GEMINI_API_KEY',
+    name: 'BYTEPLUS_API_KEY',
     required: true,
-    description: 'Google AI API key for virtual try-on feature',
-    setupUrl: 'https://aistudio.google.com/app/apikey',
+    description: 'BytePlus SeeDream API key for virtual try-on feature',
+    setupUrl: 'https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey',
   },
   {
     name: 'NEXT_PUBLIC_SUPABASE_URL',
