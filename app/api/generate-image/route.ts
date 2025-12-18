@@ -1,7 +1,7 @@
-import { GoogleGenAI } from "@google/genai"
+import { generateImageWithByteplus } from "@/lib/byteplus-client"
 import { type NextRequest, NextResponse } from "next/server"
 
-console.log("[v0] Gemini API key available:", !!process.env.GEMINI_API_KEY)
+console.log("[v0] BytePlus API key available:", !!process.env.BYTEPLUS_API_KEY)
 
 async function convertImageToSupportedFormat(file: File): Promise<{ buffer: Buffer; mimeType: string }> {
   console.log("[v0] Converting image format:", file.type, "size:", file.size)
@@ -63,79 +63,30 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Converted image types:", convertedImage1.mimeType, convertedImage2.mimeType)
 
-    console.log("[v0] Initializing Google GenAI SDK...")
-    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
-
     const base64Image1 = convertedImage1.buffer.toString("base64")
     const base64Image2 = convertedImage2.buffer.toString("base64")
 
-    console.log("[v0] Preparing to call generateContent with Google GenAI...")
-    const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: convertedImage1.mimeType,
-                data: base64Image1,
-              },
-            },
-            {
-              inlineData: {
-                mimeType: convertedImage2.mimeType,
-                data: base64Image2,
-              },
-            },
-          ],
-        },
-      ],
-      config: {
-        responseModalities: ["IMAGE"],
-        imageConfig: {
-          aspectRatio: "4:5",
-        },
-      },
+    console.log("[v0] Calling BytePlus SeeDream v4.5 API...")
+    const result = await generateImageWithByteplus({
+      prompt: prompt,
+      images: [
+        { data: base64Image1, mimeType: convertedImage1.mimeType },
+        { data: base64Image2, mimeType: convertedImage2.mimeType }
+      ]
     })
 
-    console.log("[v0] generateContent completed")
-
-    console.log("[v0] Response candidates:", result.candidates?.length || 0)
-
-    if (!result.candidates || result.candidates.length === 0) {
-      console.log("[v0] No candidates in response")
-      return NextResponse.json({ error: "No image was generated" }, { status: 500 })
+    if (result.error) {
+      console.log("[v0] BytePlus generation error:", result.error)
+      return NextResponse.json({ error: result.error }, { status: 500 })
     }
-
-    const candidate = result.candidates[0]
-    const parts = candidate.content?.parts
-    console.log("[v0] Parts in response:", parts?.length || 0)
-
-    const imagePart = parts?.find((part: any) => part.inlineData && part.inlineData.mimeType?.startsWith("image/"))
-
-    if (!imagePart?.inlineData?.data) {
-      console.log("[v0] No image data found in response")
-      return NextResponse.json({ error: "No image was generated" }, { status: 500 })
-    }
-
-    console.log("[v0] Image data found, mimeType:", imagePart.inlineData.mimeType)
-
-    const base64Image = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`
-    console.log("[v0] Base64 image created, length:", base64Image.length)
-
-    // Extract text if available
-    const textPart = parts?.find((part: any) => part.text)
-    const generatedText = textPart?.text || ""
 
     console.log("[v0] Successfully generated image")
-    console.log("[v0] Usage metadata:", result.usageMetadata)
+    console.log("[v0] Usage metadata:", result.usage)
 
     return NextResponse.json({
-      imageUrl: base64Image,
-      text: generatedText,
-      usage: result.usageMetadata,
+      imageUrl: result.imageUrl,
+      text: "", // BytePlus doesn't return text (compatibility with frontend)
+      usage: result.usage,
     })
   } catch (error) {
     console.error("[v0] Error in generate-image POST handler:", error)
