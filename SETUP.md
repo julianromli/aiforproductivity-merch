@@ -8,7 +8,7 @@
 
 You'll need free accounts on these platforms:
 
-1. **[Google AI Studio](https://aistudio.google.com/)** - For AI virtual try-on
+1. **[BytePlus Console](https://console.byteplus.com/)** - For AI virtual try-on
 2. **[Supabase](https://supabase.com/dashboard)** - For database & authentication  
 3. **[Vercel](https://vercel.com/dashboard)** - For hosting & image storage
 
@@ -44,11 +44,11 @@ The setup wizard will:
 
 ### Step 1: Get API Keys (3 minutes)
 
-#### 1.1 Google AI (Gemini)
+#### 1.1 BytePlus AI (SeeDream)
 
-1. Go to **[Google AI Studio](https://aistudio.google.com/app/apikey)**
-2. Click "Create API Key"
-3. Copy the key (starts with `AIza...`)
+1. Go to **[BytePlus API Key Management](https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey)**
+2. Create a new API key
+3. Copy the key
 4. Save it for later
 
 #### 1.2 Supabase
@@ -92,8 +92,8 @@ cp .env.example .env.local
 Open `.env.local` and replace all placeholder values:
 
 ```bash
-# Google AI
-GEMINI_API_KEY=AIza...your_actual_key_here
+# BytePlus AI
+BYTEPLUS_API_KEY=your_actual_key_here
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://abcxyz123.supabase.co

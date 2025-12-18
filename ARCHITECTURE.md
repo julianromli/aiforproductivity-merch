@@ -2,22 +2,21 @@
 
 ## Resumen Ejecutivo
 
-Este documento describe la arquitectura técnica del AI Image Playground, una aplicación que combina dos imágenes usando IA multimodal (Google Gemini 2.5 Flash Image) con un prompt de texto. La aplicación está optimizada para escalabilidad y funciona de manera excelente gracias a decisiones arquitectónicas específicas.
+Este documento describe la arquitectura técnica del AI Image Playground, una aplicación que combina dos imágenes usando IA multimodal (BytePlus SeeDream v4.5) con un prompt de texto. La aplicación está optimizada para escalabilidad y funciona de manera excelente gracias a decisiones arquitectónicas específicas.
 
 ## Stack Tecnológico
 
 ### Frontend
-- **Next.js 14** con App Router
+- **Next.js 15** con App Router
 - **React 19** con hooks modernos
 - **TypeScript** para type safety
 - **Tailwind CSS v4** con design tokens personalizados
 - **shadcn/ui** + **Radix UI** para componentes accesibles
 
 ### Backend & IA
-- **Vercel AI SDK 5.0.41** para integración con modelos de IA
-- **Google Gemini 2.5 Flash Image Preview** como modelo multimodal
-- **Vercel AI Gateway** para monitoreo, logging y control de costos
-- **Next.js API Routes** para el backend
+- **Native Fetch API** para integración con REST API
+- **BytePlus SeeDream v4.5** sebagai model multimodal
+- **Next.js API Routes** untuk backend
 
 ### Infraestructura
 - **Vercel** para deployment y hosting
@@ -28,84 +27,65 @@ Este documento describe la arquitectura técnica del AI Image Playground, una ap
 ### 1. Flujo de Datos Principal
 
 \`\`\`
-Usuario → Frontend (React) → API Route → AI Gateway → Google Gemini → Respuesta
+Usuario → Frontend (React) → API Route → BytePlus API → Respuesta
 \`\`\`
 
 #### Paso a Paso:
-1. **Upload de Imágenes**: Usuario sube 2 imágenes + prompt
-2. **Validación Frontend**: Verificación de archivos y prompt
-3. **Envío a API**: FormData con imágenes y texto
+1. **Upload de Imágenes**: Usuario sube su foto + selecciona productos
+2. **Validación Frontend**: Verificación de archivos y prompts
+3. **Envío a API**: FormData con imágenes y metadatos
 4. **Procesamiento Backend**: Conversión de formatos si es necesario
-5. **Llamada a IA**: Gemini procesa imágenes + prompt
-6. **Respuesta**: Imagen generada en base64 + metadatos
+5. **Llamada a IA**: BytePlus SeeDream v4.5 procesa imágenes + prompt
+6. **Respuesta**: Gambar hasil try-on (Base64) + metadatos usage
 
 ### 2. Componente Frontend (`app/page.tsx`)
 
-#### Estado Management:
+#### Optimización de Generación:
+- **Concurrency Limiting**: Max 3 concurrent requests untuk prioritas, 2 untuk background.
+- **Retry Mechanism**: Auto-retry untuk network/timeout errors.
+- **Progress Tracking**: Real-time status update untuk user.
+
+### 3. API Routes
+
+#### BytePlus Client (`lib/byteplus-client.ts`):
+- **Model**: `seedream-4.5`
+- **Resolution**: `2048x2560` (Ultra High Quality)
+- **Sequential Generation**: Disabled (parallel speed)
+- **Optimization Mode**: `fast`
+
+#### Integración con BytePlus SeeDream v4.5:
 \`\`\`typescript
-const [image1, setImage1] = useState<File | null>(null)
-const [image2, setImage2] = useState<File | null>(null)
-const [prompt, setPrompt] = useState("")
-const [generatedImage, setGeneratedImage] = useState<string | null>(null)
-const [isGenerating, setIsGenerating] = useState(false)
-const [error, setError] = useState<string | null>(null)
-\`\`\`
-
-#### Características Clave:
-- **Upload Drag & Drop**: Interfaz intuitiva para subir imágenes
-- **Preview en Tiempo Real**: Muestra las imágenes subidas inmediatamente
-- **Validación Reactiva**: Botón deshabilitado hasta tener todos los inputs
-- **Estados de Loading**: Spinner y feedback visual durante generación
-- **Error Handling**: Manejo elegante de errores con UI feedback
-- **Download Functionality**: Descarga directa de imagen generada
-
-### 3. API Route (`app/api/generate-image/route.ts`)
-
-#### Procesamiento de Imágenes:
-\`\`\`typescript
-async function convertImageToSupportedFormat(file: File): Promise<{ buffer: Buffer; mimeType: string }>
-\`\`\`
-
-**Formatos Soportados**: PNG, JPEG, WebP
-**Conversión Automática**: Otros formatos se convierten a JPEG
-
-#### Integración con Gemini:
-\`\`\`typescript
-const result = await generateText({
-  model: "google/gemini-2.5-flash-image-preview",
-  providerOptions: {
-    google: { responseModalities: ["TEXT", "IMAGE"] },
+const response = await fetch(BYTEPLUS_ENDPOINT, {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${process.env.BYTEPLUS_API_KEY}`,
+    "Content-Type": "application/json",
   },
-  messages: [
-    {
-      role: "user",
-      content: [
-        { type: "text", text: prompt },
-        { type: "file", mediaType: convertedImage1.mimeType, data: convertedImage1.buffer },
-        { type: "file", mediaType: convertedImage2.mimeType, data: convertedImage2.buffer },
-      ],
-    },
-  ],
+  body: JSON.stringify({
+    model: "seedream-4.5",
+    prompt: params.prompt,
+    image: imageDataUris,
+    size: "2048x2560",
+    sequential_image_generation: "disabled",
+    watermark: false,
+    response_format: "b64_json",
+    optimize_prompt_options: {
+      mode: "fast"
+    }
+  })
 })
 \`\`\`
 
 #### Respuesta Optimizada:
-- **Base64 Data URL**: Imagen lista para mostrar en frontend
-- **Metadatos**: Texto generado y usage statistics
-- **Error Handling**: Manejo robusto de errores de IA
+- **Base64 Data URL**: Gambar siap ditampilkan di frontend (JPEG)
+- **Metadatos**: Usage statistics (tokens & image count)
+- **Error Handling**: Manejo robusto de status codes (400, 401, 429, 500)
 
-### 4. AI Gateway Integration
+### 4. AI Integration Details
 
-#### Configuración Transparente:
-- **Variable de Entorno**: `AI_GATEWAY_API_KEY`
-- **Interceptación Automática**: Todas las llamadas pasan por AI Gateway
-- **Sin Código Adicional**: Funciona como proxy transparente
-
-#### Beneficios:
-- **Monitoreo**: Tracking de todas las llamadas a IA
-- **Costos**: Control y análisis de gastos por request
-- **Performance**: Métricas de latencia y tokens
-- **Debugging**: Logs detallados de requests/responses
+#### Provider Selection:
+- **BytePlus SeeDream v4.5**: Dipilih karena kualitas resolusi tinggi (2K) dan performa spesifik untuk fashion/e-commerce.
+- **REST API**: Penggunaan native fetch mengurangi bundle size dan dependency bloat.
 
 ### 5. Design System
 
@@ -126,40 +106,38 @@ const result = await generateText({
 \`\`\`
 
 #### Tipografía:
-- **Geist Sans**: Font principal para UI
-- **Geist Mono**: Font monospace para código
-- **Configuración en layout.tsx**: Variables CSS automáticas
+- **Geist Sans**: Font principal untuk UI
+- **Geist Mono**: Font monospace untuk kode
+- **Configuración en layout.tsx**: Variables CSS otomatis
 
 #### Componentes UI:
-- **shadcn/ui**: Sistema de componentes consistente
-- **Radix UI**: Primitives accesibles y robustos
-- **Tailwind CSS v4**: Utility classes con design tokens
+- **shadcn/ui**: Sistem komponen konsisten
+- **Radix UI**: Primitives aksesibel dan robust
+- **Tailwind CSS v4**: Utility classes dengan design tokens
 
 ## Decisiones Arquitectónicas Clave
 
-### 1. ¿Por qué Google Gemini 2.5 Flash Image?
+### 1. ¿Por qué BytePlus SeeDream v4.5?
 
 **Ventajas**:
-- **Multimodal Nativo**: Procesa texto + múltiples imágenes simultáneamente
-- **Calidad Superior**: Resultados más coherentes que modelos separados
-- **Latencia Optimizada**: "Flash" variant para respuestas rápidas
-- **Costo Eficiente**: Mejor relación calidad/precio para este use case
+- **High Resolution**: Mendukung output 2048x2560 yang jauh lebih tajam dari Gemini.
+- **Fashion Optimized**: Lebih baik dalam menangani tekstur pakaian dan anatomi tubuh.
+- **No Watermark**: Mendukung generation tanpa watermark secara native.
+- **Fast Mode**: Latensi rendah untuk use case real-time storefront.
 
-### 2. ¿Por qué Vercel AI SDK?
+### 2. ¿Por qué REST API via Fetch?
 
 **Beneficios**:
-- **Abstracción Unificada**: API consistente para múltiples providers
-- **Type Safety**: TypeScript nativo con tipos generados
-- **Streaming Support**: Preparado para streaming si se necesita
-- **Provider Agnostic**: Fácil cambio entre modelos sin refactoring
+- **Zero Dependencies**: Tidak butuh SDK berat yang memperlambat startup.
+- **Full Control**: Kontrol penuh atas headers, timeouts, dan payload structure.
+- **Lightweight**: Mengurangi total size deployment.
 
-### 3. ¿Por qué AI Gateway?
+### 3. Concurrency Control
 
 **Valor Agregado**:
-- **Observabilidad**: Visibilidad completa del uso de IA
-- **Control de Costos**: Prevención de gastos excesivos
-- **Rate Limiting**: Protección contra abuse
-- **Analytics**: Datos para optimización y scaling
+- **Stable UX**: Menghindari browser/server freeze karena terlalu banyak request parallel.
+- **API Protection**: Menghindari rate limit dari provider AI.
+- **Intelligent Fallback**: Menangani kegagalan per-item tanpa menghentikan seluruh proses.
 
 ### 4. ¿Por qué FormData en lugar de JSON?
 
@@ -198,9 +176,9 @@ const result = await generateText({
 ### 3. AI Integration Optimizations
 
 #### Model Selection:
-- **Flash Variant**: Optimizado para latencia
-- **Multimodal**: Una sola llamada vs múltiples requests
-- **Response Modalities**: Solo imagen + texto necesarios
+- **Fast Variant**: Optimizado para latencia
+- **Multimodal**: Una sola llamada para procesar múltiples imágenes
+- **2K Resolution**: Calidad superior para visualización de productos
 
 #### Request Optimization:
 - **Batch Processing**: Múltiples imágenes en una request
@@ -218,14 +196,9 @@ const result = await generateText({
 
 #### Database Considerations:
 - **Stateless Design**: No necesita base de datos para funcionalidad básica
-- **Future Extensions**: Fácil agregar persistencia si se necesita
+- **Supabase Integration**: Untuk manajemen produk dan prompt template.
 
 ### 2. Cost Optimization
-
-#### AI Gateway Benefits:
-- **Usage Monitoring**: Prevención de gastos inesperados
-- **Rate Limiting**: Control de abuse
-- **Analytics**: Optimización basada en datos reales
 
 #### Efficient Resource Usage:
 - **On-Demand Processing**: Solo paga por uso real
@@ -236,21 +209,16 @@ const result = await generateText({
 
 #### Built-in Analytics:
 - **Vercel Analytics**: Performance y usage metrics
-- **AI Gateway Logs**: Detailed AI usage tracking
+- **Server Logs**: Detailed tracing dengan prefix `[BytePlus]` dan `[v0]`
 - **Error Tracking**: Comprehensive error monitoring
-
-#### Future Monitoring:
-- **Custom Metrics**: Fácil agregar métricas específicas
-- **User Analytics**: Tracking de comportamiento de usuarios
-- **Performance Monitoring**: APM integration ready
 
 ## Seguridad
 
 ### 1. Input Validation
 
 #### Frontend:
-- **File Type Validation**: Solo imágenes permitidas
-- **Size Limits**: Prevención de uploads masivos
+- **File Type Validation**: Solo imágenes permitidas (JPEG/PNG/WebP)
+- **Size Limits**: Prevención de uploads masivos (Max 10MB)
 - **Content Validation**: Verificación de formatos
 
 #### Backend:
@@ -261,12 +229,12 @@ const result = await generateText({
 ### 2. API Security
 
 #### Rate Limiting:
-- **AI Gateway**: Built-in rate limiting
+- **Concurrency Control**: Protege la API de ser bombardeada
 - **Vercel Functions**: Natural request throttling
 - **Error Handling**: No information leakage
 
 #### Data Privacy:
-- **No Persistence**: Imágenes no se guardan
+- **No Persistence**: Imágenes no se guardan permanentemente (Vercel Blob solo para assets estáticos)
 - **Stateless Processing**: No tracking de usuarios
 - **Secure Transmission**: HTTPS everywhere
 
@@ -276,12 +244,12 @@ const result = await generateText({
 
 #### Development Logs:
 \`\`\`typescript
-console.log("[v0] Original image types:", image1.type, image2.type)
-console.log("[v0] Converted image types:", convertedImage1.mimeType, convertedImage2.mimeType)
+console.log("[v0] BytePlus API key available:", !!process.env.BYTEPLUS_API_KEY)
+console.log("[BytePlus] Response status:", response.status)
 \`\`\`
 
 #### Production Monitoring:
-- **AI Gateway Dashboard**: Real-time usage monitoring
+- **Vercel Logs**: Real-time tracing
 - **Vercel Analytics**: Performance insights
 - **Error Boundaries**: Graceful error handling
 
@@ -295,32 +263,30 @@ console.log("[v0] Converted image types:", convertedImage1.mimeType, convertedIm
 #### Testing Strategy:
 - **Type Safety**: TypeScript previene errores comunes
 - **Component Testing**: shadcn/ui components son pre-tested
-- **Integration Testing**: AI Gateway provides request validation
+- **Environment Validation**: `npm run validate` para validación de API keys
 
 ## Conclusiones
 
 ### Fortalezas del Sistema:
 
-1. **Arquitectura Moderna**: Stack actualizado y mantenible
-2. **Performance Optimizada**: Decisiones técnicas enfocadas en velocidad
-3. **Escalabilidad Built-in**: Preparado para crecimiento sin refactoring
-4. **Observabilidad Completa**: Monitoreo y debugging comprehensivo
-5. **Developer Experience**: Tooling moderno y productive
+1. **Resolución 2K**: Calidad visual superior con BytePlus SeeDream v4.5
+2. **Performance Optimizada**: Concurrency limiting y retry logic
+3. **Escalabilidad Built-in**: Arquitectura serverless en Vercel
+4. **Observabilidad Completa**: Tracing detallado para debugging
+5. **Zero Dependency Client**: Client ligero usando native fetch
 
 ### Recomendaciones para Scaling:
 
-1. **Mantener la Arquitectura Actual**: El foundation es sólido
-2. **Agregar Cache Layer**: Para requests repetitivos
-3. **Implementar User Management**: Si se necesita personalización
-4. **Database Integration**: Para persistencia de resultados
-5. **Advanced Analytics**: Para insights de negocio
+1. **Implementar Image Caching**: Untuk request item yang sama.
+2. **Implementar User Management**: Si se necesita personalización avanzada.
+3. **Advanced Analytics**: Para insights de negocio y uso de tokens.
 
 ### Factores de Éxito:
 
-- **Vercel AI SDK**: Abstracción robusta para IA
-- **AI Gateway**: Observabilidad y control sin overhead
-- **Google Gemini**: Modelo optimizado para el use case
-- **Modern Stack**: Herramientas maduras y bien integradas
-- **Stateless Design**: Simplicidad y escalabilidad
+- **BytePlus SeeDream v4.5**: Modelo de alta resolución para e-commerce.
+- **REST API Native**: Simplicidad y rapidez sin SDKs.
+- **Concurrency Control**: Estabilidad bajo carga pesada.
+- **Modern Stack**: Herramientas maduras y bien integradas.
+- **Stateless Design**: Simplicidad y escalabilidad.
 
-Esta arquitectura representa un balance óptimo entre simplicidad, performance y escalabilidad, diseñada específicamente para el use case de combinación de imágenes con IA.
+Esta arquitectura representa un balance óptimo entre simplicidad, performance y escalabilidad, diseñada específicamente para el caso de uso de virtual try-on de alta calidad.

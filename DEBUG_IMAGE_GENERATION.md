@@ -39,7 +39,22 @@ Setelah analisis kode, ditemukan beberapa masalah:
 - **Problem**: Transient errors (network blip, temporary overload) tidak di-retry
 - **Impact**: Reduce success rate
 
-## ✅ Solutions Implemented
+## BytePlus API Error Codes
+
+- **400**: Invalid request (missing fields, invalid image format)
+- **401**: Authentication failed (invalid API key)
+- **429**: Rate limit exceeded
+- **500**: Internal server error
+
+## Debugging Steps
+
+1. Check `BYTEPLUS_API_KEY` is set in `.env.local`
+2. Verify API key is valid at https://console.byteplus.com
+3. Check browser console for `[BytePlus]` logs
+4. Verify image sizes are within limits (max 10MB per image)
+5. Check BytePlus API documentation: https://docs.byteplus.com/en/docs/ModelArk/1666945
+
+## ✅ Solutions Implemented (v1.2)
 
 ### 1. **Concurrency Limiting** 🚦
 **Added `runWithConcurrencyLimit` helper function:**

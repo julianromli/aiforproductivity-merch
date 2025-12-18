@@ -4,10 +4,10 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-AI-powered merchandise storefront with Google Gemini integration for generating product mockups. Built with Next.js 15, TypeScript, Supabase, and shadcn/ui.
+AI-powered merchandise storefront with BytePlus SeeDream v4.5 integration for generating product mockups. Built with Next.js 15, TypeScript, Supabase, and shadcn/ui.
 
 **Key Features:**
-- AI image generation (text-to-image & model-based combining 2 images)
+- AI image generation (Virtual Try-On powered by BytePlus)
 - Admin dashboard with Supabase authentication
 - Product catalog with categories and AI prompts
 - Vercel Blob storage for uploads
@@ -21,16 +21,16 @@ AI-powered merchandise storefront with Google Gemini integration for generating 
 ### Development
 ```bash
 # Start dev server
-pnpm dev
+npm run dev
 
 # Build for production
-pnpm build
+npm run build
 
 # Start production server
-pnpm start
+npm run start
 
 # Run linter
-pnpm lint
+npm run lint
 ```
 
 ### Type Checking
@@ -58,9 +58,9 @@ Run these in Supabase Dashboard → SQL Editor in order.
 - **Styling:** Tailwind CSS v4, shadcn/ui (New York style)
 - **Database:** Supabase (PostgreSQL)
 - **Storage:** Vercel Blob
-- **AI Model:** Google Gemini 2.5 Flash Image Preview
+- **AI Model:** BytePlus SeeDream v4.5 REST API
 - **Auth:** Supabase Authentication
-- **Package Manager:** pnpm
+- **Package Manager:** npm
 
 ### Directory Structure
 ```
@@ -74,7 +74,7 @@ app/
 ├── api/
 │   ├── admin/          # Protected admin API routes
 │   ├── categories/     # Public category API
-│   └── generate-image/ # AI image generation endpoints
+│   └── generate-model-image/ # AI image generation endpoints
 ├── globals.css         # Tailwind + CSS variables
 ├── layout.tsx          # Root layout
 └── page.tsx            # Homepage (storefront)
@@ -86,6 +86,7 @@ components/
 └── [feature]/          # Feature-specific components
 
 lib/
+├── byteplus-client.ts  # BytePlus REST API client
 ├── supabase-client.ts  # Client-side Supabase
 ├── supabase-server.ts  # Server-side Supabase
 ├── supabase.ts         # Utilities
@@ -97,20 +98,20 @@ middleware.ts           # Route protection for /admin
 
 ### Key Concepts
 
-#### 1. AI Image Generation (Google Gemini)
-**Two modes:**
-- **Text-to-Image:** Generate from description only
-- **Model-Based:** Combine 2 reference images + prompt
+#### 1. AI Image Generation (BytePlus SeeDream v4.5)
+**Virtual Try-On:**
+- Combines user photo + product image + optimized prompt.
+- High resolution output: 2048x2560.
 
-**Implementation:** `/app/api/generate-image/route.ts`
-- Uses `@google/generative-ai` package (NOT Vercel AI SDK)
-- Model: `gemini-2.5-flash-image-preview`
-- Supports PNG, JPEG, WebP (auto-converts others)
-- Returns base64 data URL
+**Implementation:** `/app/api/generate-model-image/route.ts`
+- Uses native `fetch` to BytePlus REST API (no SDK needed).
+- Model: `seedream-4.5`.
+- Supports PNG, JPEG, WebP.
+- Returns base64 data URL.
 
 **Environment Variable Required:**
 ```bash
-GEMINI_API_KEY=your_google_ai_key
+BYTEPLUS_API_KEY=your_byteplus_api_key
 ```
 
 #### 2. Authentication & Authorization
@@ -179,7 +180,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 **Public APIs:**
 - `/api/categories` - List all categories
-- `/api/generate-image` - AI image generation (public)
+- `/api/generate-model-image` - AI image generation (public)
 
 **Error Response Pattern:**
 ```typescript
@@ -224,9 +225,9 @@ return NextResponse.json(
 ### AI Integration
 **When modifying AI features:**
 - Check `DOKUMENTASI_AI.md` for API details
-- Log everything with `[v0]` prefix for debugging
+- Log everything with `[v0]` or `[BytePlus]` prefix for debugging
 - Handle errors gracefully (API failures, format issues)
-- Consider rate limits (free tier: 15 req/min)
+- Consider rate limits (BytePlus Ark Console)
 
 **Prompt Engineering Tips:**
 - Be specific (colors, style, lighting)
@@ -254,7 +255,7 @@ if (error) throw error
 - Use RLS policies for security
 
 ### Security Checklist
-- [ ] Never expose `GEMINI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` in client code
+- [ ] Never expose `BYTEPLUS_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` in client code
 - [ ] Validate all user inputs (FormData, query params)
 - [ ] Use middleware for route protection
 - [ ] Sanitize file uploads (check mime types)
@@ -331,8 +332,8 @@ export function ProductForm() {
 
 ### Common Issues
 
-**1. "GEMINI_API_KEY is not configured"**
-- Add `GEMINI_API_KEY` to Vercel environment variables
+**1. "BYTEPLUS_API_KEY is not configured"**
+- Add `BYTEPLUS_API_KEY` to Vercel environment variables
 - Restart dev server after adding `.env.local`
 
 **2. "Unauthorized" on admin routes**
@@ -341,9 +342,9 @@ export function ProductForm() {
 - Check middleware logs: `[v0] Supabase not configured`
 
 **3. Image generation fails**
-- Check console logs with `[v0]` prefix
+- Check console logs with `[BytePlus]` prefix
 - Verify API key is valid
-- Check rate limits (15 req/min on free tier)
+- Check rate limits (BytePlus Ark Console)
 - Ensure image formats are supported (PNG, JPEG, WebP)
 
 **4. Database queries fail**
@@ -368,9 +369,9 @@ export function ProductForm() {
   ```
 
 ### Logging Strategy
-All logs use `[v0]` prefix for easy filtering:
+All logs use `[v0]` or `[BytePlus]` prefix for easy filtering:
 ```typescript
-console.log('[v0] Starting operation...')
+console.log('[BytePlus] Starting operation...')
 console.error('[v0] Error details:', error)
 ```
 
@@ -381,7 +382,7 @@ Check Vercel deployment logs for production issues.
 ## 📚 Important Files
 
 ### Must-Read Documentation
-- `ARCHITECTURE.md` - Detailed technical architecture (Spanish)
+- `ARCHITECTURE.md` - Detailed technical architecture
 - `DOKUMENTASI_AI.md` - AI integration guide (Indonesian)
 - `ADMIN_AUTH_SETUP.md` - Authentication setup guide
 - `SETUP_SUPABASE.md` - Database setup instructions
@@ -396,7 +397,7 @@ Check Vercel deployment logs for production issues.
 ### Entry Points
 - `app/page.tsx` - Public storefront
 - `app/admin/page.tsx` - Admin dashboard
-- `app/api/generate-image/route.ts` - AI generation endpoint
+- `app/api/generate-model-image/route.ts` - AI generation endpoint
 
 ---
 
@@ -406,8 +407,8 @@ Check Vercel deployment logs for production issues.
 
 **Environment Variables Required:**
 ```bash
-# Google AI
-GEMINI_API_KEY=
+# BytePlus AI
+BYTEPLUS_API_KEY=
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=
@@ -442,11 +443,11 @@ BLOB_READ_WRITE_TOKEN=
 - [ ] Database migrations run in Supabase
 - [ ] Admin user created in Supabase Auth
 - [ ] Type check passes (`npx tsc --noEmit`)
-- [ ] Build succeeds (`pnpm build`)
+- [ ] Build succeeds (`npm run build`)
 
 **Post-Deployment:**
 - Test admin login at `/admin/login`
-- Verify AI generation at `/api/generate-image`
+- Verify AI generation at `/api/generate-model-image`
 - Check Supabase connection
 - Monitor Vercel logs for errors
 
@@ -462,7 +463,7 @@ BLOB_READ_WRITE_TOKEN=
 5. **Update types** in `lib/types.ts` if adding database fields
 
 ### When Debugging
-1. **Check logs** with `[v0]` prefix first
+1. **Check logs** with `[v0]` or `[BytePlus]` prefix first
 2. **Verify environment variables** are set
 3. **Test API routes** with curl/Postman before blaming frontend
 4. **Check Supabase RLS policies** if database queries fail
@@ -480,16 +481,16 @@ BLOB_READ_WRITE_TOKEN=
 - **Next.js 15 Docs:** https://nextjs.org/docs
 - **Supabase Docs:** https://supabase.com/docs
 - **shadcn/ui:** https://ui.shadcn.com
-- **Google Gemini API:** https://ai.google.dev/gemini-api/docs
+- **BytePlus Ark Docs:** https://docs.byteplus.com/en/docs/ModelArk/1666945
 - **Tailwind CSS v4:** https://tailwindcss.com/docs
 
 ---
 
-**Last Updated:** 2025-10-06  
+**Last Updated:** 2025-12-18  
 **Next.js Version:** 15.5.4 (upgraded 2025-01-30)  
-**Package Manager:** pnpm
+**Package Manager:** npm
 
-**Latest Feature:** Multi-color Product Variants (2025-10-06)
+**Latest Feature:** BytePlus SeeDream v4.5 Migration (2025-12-18)
 
 ---
 
@@ -626,359 +627,3 @@ export const COLOR_MAP = {
 - ✅ Seamless AI generation with selected color
 - ✅ Easy to extend (add more colors by editing COLOR_MAP)
 - ✅ Fully integrated: Database ↔ Admin ↔ Storefront ↔ AI
-
----
-
-## 📝 Recent Changes
-
-### 2025-10-06: Multi-color Product Variants (Black & White)
-- ✅ **Full-stack implementation of product color variants**
-- ✅ **Database layer:**
-  - New table: `product_colors` with proper indexes, RLS policies, and auto-update trigger
-  - Migration scripts: 06 (create table), 07 (migrate existing products to Black default)
-  - Verified: 5 products automatically migrated with default Black color
-  - Foreign key constraint with CASCADE delete
-- ✅ **Backend APIs:**
-  - Public: `GET /api/products` now includes `colors` array with proper ordering
-  - Admin CRUD: 4 new endpoints for color management
-    - `GET /POST /api/admin/products/[id]/colors`
-    - `PUT /DELETE /api/admin/products/[id]/colors/[colorId]`
-  - Smart default handling (auto-set next color if deleting default)
-  - Prevents deletion of last color variant
-  - Auto-increment sort_order
-- ✅ **Admin UI components:**
-  - `color-variant-list.tsx` - Visual color list with edit/delete actions
-  - `color-variant-form.tsx` - Dialog with color selector, image upload, default toggle
-  - Integrated into `product-form.tsx` (edit mode only)
-  - Uses existing image upload API (`/api/admin/upload`)
-  - Toast notifications for success/error feedback
-- ✅ **Storefront enhancements:**
-  - Circular color selector buttons (8x8 rounded-full with hex background)
-  - Border highlight + ring effect on selected color
-  - Automatic image switching based on selected color
-  - State management: `selectedColors` Record<productId, colorId>
-  - Default colors pre-selected on page load (is_default flag)
-  - Selector only visible if product has 2+ colors
-- ✅ **AI Integration:**
-  - Modified `runProductGeneration` to use selected color's image_url
-  - Added `colorName` field to FormData sent to `/api/generate-model-image`
-  - Backend enhances prompt with color information
-  - Example: "IMPORTANT: The T-shirt must be specifically in white color..."
-  - Fallback images also respect selected color
-- ✅ **TypeScript types:**
-  - New interface: `ProductColor` in `lib/types.ts`
-  - Extended `Product` interface with optional `colors` array
-  - Color constants: `COLOR_MAP` in `lib/color-constants.ts`
-- ✅ **Files created (8):**
-  - `scripts/06-add-product-colors-table.sql`
-  - `scripts/07-migrate-existing-products-colors.sql`
-  - `app/api/admin/products/[id]/colors/route.ts`
-  - `app/api/admin/products/[id]/colors/[colorId]/route.ts`
-  - `lib/color-constants.ts`
-  - `components/admin/color-variant-form.tsx`
-  - `components/admin/color-variant-list.tsx`
-- ✅ **Files modified (5):**
-  - `lib/types.ts` - Added ProductColor interface
-  - `app/api/products/route.ts` - Include colors in response
-  - `components/admin/product-form.tsx` - Embedded color management
-  - `app/page.tsx` - Color selector UI + state management
-  - `app/api/generate-model-image/route.ts` - Color-aware prompts
-  - `WARP.md` - Documentation update
-- ✅ **Zero TypeScript errors** - Build verified successful
-- ✅ **Future extensibility:**
-  - Add more colors by editing `COLOR_MAP` constant
-  - No code changes needed for existing functionality
-  - Database-driven, admin-managed
-
-### 2025-02-05: Dynamic Categories Integration (Database → Backend → Frontend)
-- ✅ **Standardized product categories to 4 general merchandise types**
-- ✅ **Database migration:**
-  - Replaced old categories (MEN'S HOODIE, MEN'S PANTS, RUNNING SHOES, ACCESSORIES)
-  - New categories: **Apparel, Accessories, Stationery, Other**
-  - Migration: `update_categories_to_general_merch` via Supabase MCP
-  - AI prompt instructions updated per category for better image generation
-- ✅ **Backend integration:**
-  - Existing `/api/categories` API already functional (no changes needed)
-  - Returns categories ordered alphabetically
-  - Public endpoint (no auth required)
-- ✅ **Frontend updates:**
-  - `components/admin/product-form.tsx`: 
-    - Added `useEffect` to fetch categories from API
-    - Dynamic dropdown population (no hardcoded values)
-    - Loading state during fetch
-    - Error handling with toast notifications
-  - `app/admin/products/page.tsx`:
-    - Added categories state & fetch function
-    - Dynamic category filter dropdown
-    - Both form and filter now use same API source
-  - `components/admin/products-preview.tsx`: Already dynamic (receives categories as props)
-- ✅ **Benefits:**
-  - ✨ **Single source of truth:** Categories managed in database only
-  - ✨ **Zero hardcoded values:** Easy to add/modify categories without code changes
-  - ✨ **Consistent UX:** All dropdowns show same categories
-  - ✨ **Future-proof:** Admin can manage categories via database directly
-- ✅ Files modified:
-  - Database: `categories` table (via migration)
-  - `components/admin/product-form.tsx` - Dynamic category fetch
-  - `app/admin/products/page.tsx` - Dynamic category filter
-  - `WARP.md` - Documentation update
-- ✅ Zero TypeScript errors
-- ✅ Full integration verified: Database ↔ API ↔ Frontend
-- ✅ Categories API tested: `GET /api/categories` returns 4 categories successfully
-
-### 2025-02-05: Products Preview with Quick Edit on Dashboard
-- ✅ **Added products preview section to admin dashboard**
-- ✅ **ProductsPreview component** (`components/admin/products-preview.tsx`):
-  - Client component with interactive edit functionality
-  - Displays 6 recent products in responsive grid (2 cols mobile, 3 cols desktop)
-  - Product cards with image (AspectRatio 4:5), name, price, category, status badge
-  - Quick Edit button per product
-  - Empty state with call-to-action link
-  - "View All" button linking to full products page
-- ✅ **Quick Edit Dialog:**
-  - Essential fields: name, price, currency, category, image_url, is_active
-  - Form validation (required fields, price > 0)
-  - Switch component for active/inactive toggle
-  - Dynamic currency handling (IDR with step="1", USD/EUR with step="0.01")
-  - Loading states during update
-  - Success/error toast notifications
-  - Uses existing PUT /api/admin/products/[id] endpoint
-- ✅ **Dashboard Integration:**
-  - Server component fetches recent products (limit 6) and categories
-  - ProductsPreview positioned between chart and quick actions
-  - Preserves existing dashboard features (stats cards, chart)
-  - No-cache strategy for always fresh data
-- ✅ **New Components Installed:**
-  - `components/ui/switch.tsx` - Toggle switch (shadcn)
-  - `components/ui/toaster.tsx` - Toast notifications renderer
-  - Toaster added to admin layout for global toast support
-- ✅ **UX Improvements:**
-  - Direct product editing from dashboard (no page navigation)
-  - Fast access to recent products for admin
-  - Mobile-friendly responsive design
-  - Proper loading & error states
-  - Visual feedback via toasts
-- ✅ Files modified:
-  - `app/admin/page.tsx` - Server component with data fetching
-  - `app/admin/layout.tsx` - Added Toaster component
-  - `components/admin/products-preview.tsx` - New component
-  - `components/ui/switch.tsx` - New shadcn component
-  - `components/ui/toaster.tsx` - New toast renderer
-- ✅ Zero TypeScript errors, build successful
-- ✅ All existing features preserved
-- ✅ Ready for Playwright testing
-
-### 2025-02-05: Admin Dashboard UI Upgrade (shadcn dashboard-01)
-- ✅ **Upgraded admin dashboard with shadcn dashboard-01 block components**
-- ✅ **Installed components via shadcn CLI:**
-  - Interactive chart components (recharts integration)
-  - Advanced UI components: sidebar, drawer, tabs, toggle-group
-  - Supporting components: avatar, breadcrumb, skeleton, sonner
-  - Total: 26 new component files
-- ✅ **Enhanced stats cards:**
-  - Gradient backgrounds (`from-primary/5 to-card`)
-  - Badge indicators with trend icons (IconTrendingUp)
-  - CardAction, CardDescription, CardFooter for richer content
-  - Responsive container queries (`@container/card`)
-  - Better visual hierarchy with proper spacing
-- ✅ **Added ChartAreaInteractive component:**
-  - Interactive area chart with time range filters (7d, 30d, 90d)
-  - Desktop/mobile responsive toggle buttons
-  - Real-time data visualization placeholder
-  - Built-in chart tooltip & legend
-- ✅ **Icon library transition:**
-  - Switched from lucide-react to @tabler/icons-react for consistency
-  - Icons used: IconPackage, IconMessages, IconSparkles, IconTrendingUp
-- ✅ **Dashboard data structure:**
-  - Full dashboard-01 example installed at `app/dashboard/`
-  - Includes sample data table with drag-and-drop sorting
-  - Sidebar navigation components (nav-main, nav-documents, nav-secondary)
-  - Can be used as reference for future admin features
-- ✅ **Preserved existing admin layout:**
-  - Did NOT replace existing sidebar/header (kept current admin layout)
-  - Only integrated chart & enhanced cards into dashboard page content
-  - Maintains authentication & navigation structure
-- ✅ Files modified:
-  - `app/admin/page.tsx` - Dashboard page with new components
-  - `app/globals.css` - Updated CSS variables for chart theming
-  - `package.json`, `pnpm-lock.yaml` - New dependencies
-- ✅ New components:
-  - `components/chart-area-interactive.tsx` - Interactive chart
-  - `components/ui/chart.tsx` - Chart container & config
-  - `components/ui/tabs.tsx`, `toggle-group.tsx`, etc.
-  - `hooks/use-mobile.ts` - Mobile detection hook
-- ✅ Zero TypeScript errors, build successful
-- ✅ Ready for future data integration (replace static data with real DB queries)
-
-### 2025-02-05: SEO Metadata Optimization & Documentation Updates
-- ✅ **Fixed metadata in `app/layout.tsx` for proper SEO:**
-  - Title: "AI For Productivity Merchandise - Official Merch Store" (was: "v0 App")
-  - Description: Compelling, keyword-rich description (was: "Created with v0")
-  - Added keywords array: "AI for productivity", "productivity merchandise", etc.
-  - Open Graph tags for Facebook/LinkedIn sharing
-  - Twitter Card metadata for proper social media previews
-  - Robots directives for search engine indexing
-  - Author/creator metadata linking to https://aiforproductivity.id
-  - Indonesian locale (id_ID) for regional optimization
-- ✅ **Documentation updates:**
-  - README.md: Complete rewrite with proper branding, features, tech stack
-  - AGENTS.md: Created comprehensive guide for AI agents
-  - WARP.md: Updated recent changes section
-- ✅ **SEO Benefits:**
-  - Google will properly index site with correct title & description
-  - Social media sharing shows professional preview with logo
-  - Targeted keywords for organic search traffic
-  - Brand consistency across all metadata
-- ✅ Files modified:
-  - `app/layout.tsx` - Metadata object completely rewritten
-  - `README.md` - Professional project documentation
-  - `AGENTS.md` - AI agent configuration (new file)
-  - `WARP.md` - Updated changelog
-- ✅ Zero TypeScript errors
-- ✅ Branding confirmed: "AI For Productivity Merchandise"
-
-### 2025-02-05: Hybrid Parallel Image Generation (Performance Optimization)
-- ✅ **Implemented hybrid lazy loading strategy for AI image generation**
-- ✅ **Strategy: Priority Batch (3) + Background Parallel**
-  - First 3 products generate in parallel (priority batch)
-  - Remaining products generate in parallel in background
-  - Auto-switch to generated view after priority batch completes
-  - User sees results ~3-5x faster than sequential approach
-- ✅ **Technical Implementation:**
-  - Per-product timeout: 60 seconds with AbortController
-  - Race condition guards via `generationRunIdRef`
-  - Incremental state updates: "X of Y ready" progress
-  - Promise.allSettled for graceful error handling
-  - Cleanup on unmount prevents memory leaks
-- ✅ **UI Improvements:**
-  - Real-time progress: "3 of 10 ready" instead of percentage
-  - Shows active product names being generated (max 3)
-  - Background indicator: "✨ 7 more in background..."
-  - Smooth transitions preserved
-- ✅ **UX Behavior (Auto-Switch + Manual Control):**
-  - **Auto Mode:** Priority batch completes → Auto-switch to generated view (no user action needed)
-  - **Manual Mode:** Toggle button always available: "SHOW MY PHOTOS" ↔ "SHOW PRODUCTS"
-  - **Best of both worlds:** Instant gratification + full user control
-  - User can freely toggle between original products and generated photos anytime
-- ✅ **Performance Metrics:**
-  - console.time/timeEnd tracking per batch
-  - Logs: `[gen] priority` and `[gen] background` timings
-  - Example: 10 products @ ~8s each
-    - Before: ~80s total (sequential)
-    - After: ~8-10s to first view (3 parallel) + background continues
-- ✅ **Error Handling:**
-  - Individual product failures don't block others
-  - Fallback to original product image on error
-  - Progress continues even with partial failures
-- ✅ Files modified:
-  - `app/page.tsx` - Complete refactor of generation logic
-- ✅ Zero TypeScript errors
-- ✅ No rate limiting concerns (billing-enabled Gemini API)
-
-### 2025-02-05: IDR Currency Format Standardization
-- ✅ **Implemented proper IDR formatting (no decimal places)**
-- ✅ Created `formatCurrency()` utility in `lib/utils.ts`:
-  - IDR format: `Rp 100.000` (no decimals, dot thousand separator)
-  - USD/EUR format: `$10.00` or `€10.00` (with decimals)
-  - Uses `toLocaleString('id-ID')` for proper Indonesian formatting
-- ✅ **Updated all currency displays:**
-  - Storefront (`app/page.tsx`) - Product price display
-  - Admin products table (`app/admin/products/page.tsx`)
-  - Both now use `formatCurrency()` instead of manual formatting
-- ✅ **Improved admin product form:**
-  - Dynamic input step: `step="1"` for IDR, `step="0.01"` for USD/EUR
-  - Dynamic placeholder: `"100000"` for IDR, `"99.99"` for USD/EUR
-  - Helper text explaining IDR format (no decimals)
-  - Adapts automatically when currency selection changes
-- ✅ **Examples:**
-  - Before: `IDR 100000.00` or `Rp100000,00`
-  - After: `Rp 100.000` ✨
-  - Maintains regional consistency (Indonesian format)
-- ✅ Files modified:
-  - `lib/utils.ts` - New formatCurrency function
-  - `app/page.tsx` - Storefront display
-  - `app/admin/products/page.tsx` - Admin table
-  - `components/admin/product-form.tsx` - Form improvements
-- ✅ Zero TypeScript errors
-- ✅ Build successful
-
-### 2025-02-03: Buy Button with External Links
-- ✅ **Implemented external purchase link functionality**
-- ✅ Database migration: Added `buy_link` column (VARCHAR 500, nullable)
-  - Script: `scripts/05-add-buy-link-column.sql`
-  - Applied via Supabase MCP
-  - Indexed for performance
-- ✅ **Backend updates:**
-  - Updated Product interface in `lib/types.ts`
-  - GET `/api/products` includes buy_link
-  - POST `/api/admin/products` accepts buy_link
-  - PUT `/api/admin/products/[id]` accepts buy_link
-- ✅ **Admin form enhancements:**
-  - Added "Buy Link" input field in product form
-  - URL validation with placeholder
-  - Helper text for external links (Tokopedia, Shopee, etc.)
-- ✅ **Frontend functionality:**
-  - Changed "ADD" button → "BUY" button
-  - onClick redirects to external link (new tab)
-  - Security: `noopener,noreferrer` attributes
-  - Alert fallback for products without buy_link
-  - Prevents image preview trigger with `stopPropagation()`
-- ✅ Files modified:
-  - `lib/types.ts` - Type definitions
-  - `app/api/products/route.ts` - Public API
-  - `app/api/admin/products/route.ts` - Admin create
-  - `app/api/admin/products/[id]/route.ts` - Admin update
-  - `components/admin/product-form.tsx` - Form input
-  - `app/page.tsx` - Frontend button & interface
-- ✅ Zero TypeScript errors
-- ✅ Full integration: Database → Backend → Admin → Frontend
-
-### 2025-02-03: Product Image Aspect Ratio & Dialog Accessibility Fixes
-- ✅ **Implemented consistent 4:5 aspect ratio for all product images**
-- ✅ Added `AspectRatio` component from shadcn/ui via MCP
-- ✅ Features:
-  - All product images locked to 4:5 aspect ratio (896x1152px equivalent)
-  - Images with different ratios automatically fill/crop via `object-cover`
-  - Maintains consistent visual grid in product catalog
-  - Applies to both original product images AND AI-generated images
-  - Hover zoom effect preserved
-  - Image preview dialog integration maintained
-- ✅ **Fixed accessibility issues in ImagePreviewDialog:**
-  - Added hidden `DialogTitle` for screen reader accessibility (ARIA compliance)
-  - Fixed empty string error in image src attribute
-  - Prevents unnecessary page re-downloads
-  - Follows Radix UI Dialog best practices
-- ✅ Component files:
-  - `components/ui/aspect-ratio.tsx` (new - shadcn component)
-  - `components/image-preview-dialog.tsx` (updated - accessibility fixes)
-  - `app/page.tsx` (updated - AspectRatio integration)
-- ✅ Zero TypeScript errors, full accessibility compliance
-- ✅ Mobile-friendly, responsive design maintained
-
-### 2025-01-30: Image Preview with Zoom Feature
-- ✅ **Implemented full-screen image preview with zoom functionality**
-- ✅ Created `components/image-preview-dialog.tsx` (custom implementation)
-- ✅ Features:
-  - Zoom in/out (0.5x - 4x range) via buttons or mouse wheel
-  - Pan/drag when zoomed (desktop mouse + mobile touch)
-  - Reset button to restore 100% zoom
-  - Dark backdrop with blur effect
-  - Smooth animations & transitions
-  - Keyboard accessible (ESC to close)
-  - Search icon overlay on hover (indicates clickability)
-- ✅ Integration in `app/page.tsx`:
-  - Click handler on all product images
-  - State management for selected image
-  - Works for both product images AND generated images
-- ✅ Zero external dependencies (pure React + CSS transforms)
-- ✅ Mobile-friendly with touch gesture support
-- ✅ Build successful, no TypeScript errors
-
-### 2025-01-30: Next.js 15.5.4 Upgrade
-- ✅ Upgraded Next.js from 15.2.4 → 15.5.4
-- ✅ Cleaned up unused fonts in `app/layout.tsx`:
-  - Removed: `Inter`, duplicate `Geist_Mono`, `Source_Serif_4`
-  - Kept: `Plus_Jakarta_Sans` & `Geist_Mono` (actively used)
-- ✅ Fixed Google Fonts timeout issue during build
-- ✅ Build verified successful with all routes generating properly
-- ⚠️ Note: Use `pnpm` (not `npm`) for package management

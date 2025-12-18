@@ -9,7 +9,7 @@
 ## 🌟 Overview
 
 An innovative e-commerce platform built with **Next.js 15** featuring:
-- 🤖 **AI-Powered Virtual Try-On**: See how products look on you using Google Gemini 2.5 Flash
+- 🤖 **AI-Powered Virtual Try-On**: See how products look on you using BytePlus SeeDream v4.5
 - 🛍️ **Modern Storefront**: Clean, professional UI built with shadcn/ui (New York style)
 - 🔐 **Admin Dashboard**: Full product & prompt management with Supabase authentication
 - 📱 **Mobile-First Design**: Responsive, accessible, and optimized for all devices
@@ -21,7 +21,7 @@ An innovative e-commerce platform built with **Next.js 15** featuring:
 - **Language**: TypeScript 5
 - **Styling**: Tailwind CSS v4 + shadcn/ui
 - **Database**: Supabase (PostgreSQL + Auth)
-- **AI Model**: Google Gemini 2.5 Flash Image Preview
+- **AI Model**: BytePlus SeeDream v4.5 REST API
 - **Storage**: Vercel Blob
 - **Deployment**: Vercel
 - **Package Manager**: pnpm
@@ -30,6 +30,7 @@ An innovative e-commerce platform built with **Next.js 15** featuring:
 
 ### 1. AI Virtual Try-On
 - Upload your photo and see AI-generated images of you wearing the products
+- Powered by BytePlus SeeDream v4.5 with 2048x2560 resolution
 - Hybrid parallel generation (priority batch + background processing)
 - Real-time progress tracking: "3 of 10 ready"
 - Auto-switch to generated view when first batch completes
@@ -82,7 +83,7 @@ Choose the guide that fits your experience level:
 ### Prerequisites
 
 - Node.js 18+
-- Free accounts: [Google AI](https://aistudio.google.com/), [Supabase](https://supabase.com/), [Vercel](https://vercel.com/)
+- Free accounts: [BytePlus](https://console.byteplus.com/), [Supabase](https://supabase.com/), [Vercel](https://vercel.com/)
 
 ## 🔧 Development
 
@@ -119,7 +120,7 @@ pnpm lint
 
 ### One-Click Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/julianromli/aiforproductivity-merch&env=GEMINI_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=API%20keys%20for%20Google%20AI%2C%20Supabase%20database%2C%20and%20authentication&envLink=https://github.com/julianromli/aiforproductivity-merch/blob/main/SETUP.md&project-name=aiforproductivity-merch&repository-name=aiforproductivity-merch)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/julianromli/aiforproductivity-merch&env=BYTEPLUS_API_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=API%20keys%20for%20BytePlus%20AI%2C%20Supabase%20database%2C%20and%20authentication&envLink=https://github.com/julianromli/aiforproductivity-merch/blob/main/SETUP.md&project-name=aiforproductivity-merch&repository-name=aiforproductivity-merch)
 
 **This will automatically:**
 - Fork the repository to your GitHub

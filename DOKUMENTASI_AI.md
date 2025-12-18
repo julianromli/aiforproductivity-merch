@@ -1,15 +1,15 @@
-# Dokumentasi AI Integration - Gemini Image Generation
+# Dokumentasi AI Integration - BytePlus SeeDream v4.5
 
-Halo! Ini dokumentasi lengkap buat fitur AI Image Generation yang udah diintegrasikan ke aplikasi storefront kita. Fitur ini pake Google Gemini API buat generate gambar produk secara otomatis.
+Halo! Ini dokumentasi lengkap buat fitur AI Image Generation yang udah diintegrasikan ke aplikasi storefront kita. Fitur ini pake BytePlus SeeDream v4.5 buat generate gambar produk secara otomatis.
 
 ## Overview
 
 Aplikasi ini punya 2 endpoint AI yang bisa generate gambar:
 
-1. **Text-to-Image** - Generate gambar dari deskripsi text aja
-2. **Model-Based Generation** - Generate gambar baru berdasarkan 2 gambar referensi + prompt
+1. **Virtual Try-On / Model Generation** - Generate gambar orang memakai produk berdasarkan foto user + foto produk.
+2. **Product Image Generation** - Generate variasi gambar produk berdasarkan prompt.
 
-Keduanya pake model `gemini-2.5-flash-image-preview` dari Google.
+Keduanya pake model `seedream-4.5` dari BytePlus via REST API.
 
 ---
 
@@ -17,10 +17,10 @@ Keduanya pake model `gemini-2.5-flash-image-preview` dari Google.
 
 ### 1. API Key
 
-Lo butuh API key dari Google AI Studio. Cara dapetinnya:
+Lo butuh API key dari BytePlus Console. Cara dapetinnya:
 
-1. Buka [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Login pake akun Google lo
+1. Buka [BytePlus API Key Management](https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey)
+2. Login pake akun BytePlus lo
 3. Klik "Create API Key"
 4. Copy API key yang dikasih
 
@@ -29,72 +29,19 @@ Lo butuh API key dari Google AI Studio. Cara dapetinnya:
 Tambahin environment variable ini ke project Vercel lo:
 
 \`\`\`
-GEMINI_API_KEY=your_api_key_here
+BYTEPLUS_API_KEY=your_api_key_here
 \`\`\`
 
 **Cara setting di Vercel:**
 - Buka project settings
 - Masuk ke tab "Environment Variables"
-- Tambahin variable baru dengan nama `GEMINI_API_KEY`
+- Tambahin variable baru dengan nama `BYTEPLUS_API_KEY`
 - Paste API key lo
 - Save & redeploy
 
 ---
 
-## Endpoint 1: Text-to-Image Generation
-
-### Path
-\`\`\`
-POST /api/generate-image
-\`\`\`
-
-### Fungsi
-Generate gambar produk dari deskripsi text doang. Cocok buat bikin mockup produk cepet atau eksplorasi ide visual.
-
-### Request Format
-\`\`\`typescript
-// FormData
-{
-  prompt: string  // Deskripsi gambar yang mau di-generate
-}
-\`\`\`
-
-### Contoh Request
-\`\`\`javascript
-const formData = new FormData()
-formData.append('prompt', 'Nike running shoes, red and white color, studio lighting, product photography')
-
-const response = await fetch('/api/generate-image', {
-  method: 'POST',
-  body: formData
-})
-
-const data = await response.json()
-console.log(data.image) // Base64 image string
-\`\`\`
-
-### Response Format
-\`\`\`typescript
-{
-  image: string  // Base64-encoded JPEG image
-}
-\`\`\`
-
-### Tips Prompt yang Bagus
-- Sebutin detail produk (warna, material, style)
-- Tambahin konteks lighting ("studio lighting", "natural light")
-- Sebutin style foto ("product photography", "lifestyle shot")
-- Makin spesifik, makin bagus hasilnya
-
-**Contoh prompt bagus:**
-\`\`\`
-"White sneakers with blue swoosh logo, minimalist design, 
-studio lighting, clean white background, product photography"
-\`\`\`
-
----
-
-## Endpoint 2: Model-Based Image Generation
+## Endpoint 1: Virtual Try-On / Model Generation
 
 ### Path
 \`\`\`
@@ -102,104 +49,51 @@ POST /api/generate-model-image
 \`\`\`
 
 ### Fungsi
-Generate gambar baru berdasarkan 2 gambar referensi yang lo upload + prompt text. Gemini bakal "belajar" dari kedua gambar itu dan bikin variasi baru sesuai prompt lo.
+Generate gambar orang memakai produk berdasarkan foto user + foto produk. BytePlus bakal memproses kedua gambar tersebut dengan prompt yang sudah di-optimize.
 
 ### Request Format
 \`\`\`typescript
 // FormData
 {
-  prompt: string,      // Instruksi untuk generate gambar baru
-  image1: File,        // Gambar referensi pertama
-  image2: File         // Gambar referensi kedua
+  userPhoto: File,      // Foto orang
+  productImage: File,   // Foto produk
+  productName: string,
+  productCategory: string,
+  productId: string,
+  colorName?: string    // Opsional
 }
-\`\`\`
-
-### Contoh Request
-\`\`\`javascript
-const formData = new FormData()
-formData.append('prompt', 'Combine the style of both shoes into a new design')
-formData.append('image1', file1) // File object dari input
-formData.append('image2', file2) // File object dari input
-
-const response = await fetch('/api/generate-model-image', {
-  method: 'POST',
-  body: formData
-})
-
-const data = await response.json()
-console.log(data.image) // Base64 image string
 \`\`\`
 
 ### Response Format
 \`\`\`typescript
 {
-  image: string  // Base64-encoded JPEG image
+  imageUrl: string,  // Data URI image (JPEG)
+  productName: string,
+  usage: {
+    generated_images: number,
+    output_tokens: number,
+    total_tokens: number
+  }
 }
 \`\`\`
-
-### Use Cases
-- **Style Transfer**: "Combine the color scheme of image 1 with the design of image 2"
-- **Product Variations**: "Create a new shoe design inspired by both images"
-- **Color Remixing**: "Apply the colors from image 1 to the product in image 2"
-- **Design Fusion**: "Merge the patterns from both images into one cohesive design"
-
-### Tips Buat Hasil Maksimal
-1. **Pilih gambar yang relevan** - Kedua gambar sebaiknya produk sejenis
-2. **Kualitas gambar** - Pake gambar yang jelas, ga blur
-3. **Prompt yang spesifik** - Jelasin apa yang lo mau dari kombinasi kedua gambar
-4. **Eksperimen** - Coba berbagai kombinasi gambar dan prompt
 
 ---
 
 ## Implementasi Technical
 
-### Package yang Dipake
-\`\`\`json
-{
-  "@google/generative-ai": "^0.21.0"
+### Client Library
+\`\`\`typescript
+// lib/byteplus-client.ts
+export async function generateImageWithByteplus(params: BytePlusGenerateParams) {
+  // Menggunakan native fetch ke BytePlus REST API
 }
 \`\`\`
 
-### Struktur Kode
-
-**Inisialisasi Client:**
-\`\`\`typescript
-import { GoogleGenerativeAI } from "@google/generative-ai"
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-const model = genAI.getGenerativeModel({ 
-  model: "gemini-2.5-flash-image-preview" 
-})
-\`\`\`
-
-**Format Request ke Gemini:**
-\`\`\`typescript
-const result = await model.generateContent({
-  contents: [{
-    role: "user",
-    parts: [
-      { text: prompt },
-      // Optional: gambar dalam format base64
-      { 
-        inlineData: { 
-          mimeType: "image/jpeg", 
-          data: base64String 
-        } 
-      }
-    ]
-  }]
-})
-\`\`\`
-
-**Parsing Response:**
-\`\`\`typescript
-// Cari part yang berisi gambar
-const imagePart = result.response.candidates[0].content.parts.find(
-  part => part.inlineData?.mimeType?.startsWith('image/')
-)
-
-const base64Image = imagePart.inlineData.data
-\`\`\`
+### Konfigurasi Model
+- **Model**: `seedream-4.5`
+- **Resolution**: `2048x2560`
+- **Watermark**: `false`
+- **Response Format**: `b64_json`
 
 ---
 
@@ -209,9 +103,9 @@ const base64Image = imagePart.inlineData.data
 
 **1. Missing API Key**
 \`\`\`
-Error: GEMINI_API_KEY is not configured
+Error: BYTEPLUS_API_KEY is not configured
 \`\`\`
-**Solusi:** Set environment variable `GEMINI_API_KEY`
+**Solusi:** Set environment variable `BYTEPLUS_API_KEY`
 
 **2. Invalid API Key**
 \`\`\`
@@ -223,7 +117,7 @@ Status 401: API key not valid
 \`\`\`
 Status 429: Resource exhausted
 \`\`\`
-**Solusi:** Tunggu beberapa saat, atau upgrade quota di Google AI Studio
+**Solusi:** Tunggu beberapa saat, atau cek quota di BytePlus Console
 
 **4. No Image Generated**
 \`\`\`
@@ -235,7 +129,7 @@ Error: No image was generated in the response
 \`\`\`
 Error: Failed to process image
 \`\`\`
-**Solusi:** Pastikan gambar yang di-upload format JPEG/PNG dan ga corrupt
+**Solusi:** Pastikan gambar yang di-upload format JPEG/PNG/WebP dan ga corrupt
 
 ---
 
@@ -245,161 +139,43 @@ Error: Failed to process image
 Semua endpoint udah dilengkapi console.log buat debugging:
 
 \`\`\`typescript
-console.log('[v0] Generating image with prompt:', prompt)
-console.log('[v0] Image generated successfully')
-console.log('[v0] Gemini API error:', error)
+console.log('[BytePlus] Starting image generation')
+console.log('[v0] BytePlus API key available:', !!process.env.BYTEPLUS_API_KEY)
+console.log('[v0] Successfully generated model image for:', productName)
 \`\`\`
 
 Cek logs di Vercel dashboard buat troubleshooting.
 
 ### Response Time
-- Text-to-image: ~3-8 detik
-- Model-based: ~5-12 detik (tergantung ukuran gambar)
+- Virtual Try-On: ~5-15 detik (tergantung antrian API)
 
 ---
 
 ## Best Practices
 
 ### 1. Prompt Engineering
-- Pake bahasa Inggris buat hasil lebih konsisten
-- Sebutin style, lighting, dan konteks
-- Hindari prompt yang terlalu abstrak
+- Pake prompt yang sudah disediakan di admin dashboard.
+- Fokus pada detail pakaian (fit, silhouette, color).
+- Gunakan keyword "ABSOLUTELY CRITICAL - FACIAL FIDELITY" untuk menjaga kemiripan wajah.
 
 ### 2. Image Input
-- Ukuran optimal: 512x512 sampai 1024x1024
-- Format: JPEG atau PNG
-- Hindari gambar terlalu besar (>5MB)
-
-### 3. Error Handling
-- Selalu handle error dengan try-catch
-- Kasih feedback yang jelas ke user
-- Implement retry logic untuk network errors
-
-### 4. Performance
-- Compress gambar sebelum upload
-- Implement loading states di UI
-- Consider caching hasil generation
-
----
-
-## Contoh Implementasi di Frontend
-
-\`\`\`typescript
-'use client'
-
-import { useState } from 'react'
-
-export default function ImageGenerator() {
-  const [prompt, setPrompt] = useState('')
-  const [image, setImage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  const generateImage = async () => {
-    setLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append('prompt', prompt)
-
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        body: formData
-      })
-
-      const data = await response.json()
-      
-      if (data.error) {
-        alert('Error: ' + data.error)
-        return
-      }
-
-      setImage(data.image)
-    } catch (error) {
-      console.error('Failed to generate image:', error)
-      alert('Gagal generate gambar')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div>
-      <input 
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Describe your product..."
-      />
-      <button onClick={generateImage} disabled={loading}>
-        {loading ? 'Generating...' : 'Generate Image'}
-      </button>
-      {image && (
-        <img src={`data:image/jpeg;base64,${image}`} alt="Generated" />
-      )}
-    </div>
-  )
-}
-\`\`\`
-
----
-
-## Limitasi & Considerations
-
-### Limitasi Model
-- Ga bisa generate text di dalam gambar dengan akurat
-- Hasil bisa bervariasi (non-deterministic)
-- Kadang perlu beberapa kali generate buat hasil optimal
-
-### Quota & Pricing
-- Free tier: 15 requests per minute
-- Cek [Google AI Pricing](https://ai.google.dev/pricing) buat detail lengkap
-- Monitor usage di Google AI Studio dashboard
-
-### Content Policy
-- Model punya content filter buat konten inappropriate
-- Prompt yang melanggar policy bakal di-reject
-- Baca [Google's Usage Policy](https://ai.google.dev/gemini-api/terms) buat detail
-
----
-
-## Troubleshooting
-
-### Gambar Ga Sesuai Ekspektasi
-1. Coba prompt yang lebih detail dan spesifik
-2. Tambahin konteks style dan lighting
-3. Generate beberapa kali dengan variasi prompt
-4. Pake reference images yang lebih jelas (untuk model-based)
-
-### Response Lambat
-1. Cek koneksi internet
-2. Cek status Google AI API di [status page](https://status.cloud.google.com/)
-3. Consider implement timeout di client side
-4. Optimize ukuran gambar input
-
-### Error Terus-terusan
-1. Verify API key masih valid
-2. Cek quota belum habis
-3. Cek logs di Vercel dashboard
-4. Test endpoint pake Postman/curl dulu
+- Ukuran optimal: 1024x1280 (4:5 ratio).
+- Format: JPEG, PNG, atau WebP.
+- Hindari gambar terlalu besar (>10MB per image).
 
 ---
 
 ## Resources
 
-- [Google Gemini API Docs](https://ai.google.dev/gemini-api/docs)
-- [Image Generation Guide](https://ai.google.dev/gemini-api/docs/image-generation)
-- [Google AI Studio](https://aistudio.google.com/)
-- [Pricing Info](https://ai.google.dev/pricing)
+- [BytePlus Ark Console](https://console.byteplus.com/ark/)
+- [BytePlus SeeDream v4.5 Docs](https://docs.byteplus.com/en/docs/ModelArk/1666945)
 
 ---
 
 ## Changelog
 
-### v1.0.0 (Current)
-- Migrasi dari Vercel AI SDK ke Google GenAI SDK
-- Support text-to-image generation
-- Support model-based generation dengan 2 gambar referensi
-- Pake model `gemini-2.5-flash-image-preview`
-- Base64 image response format
-
----
-
-Kalo ada pertanyaan atau issue, feel free buat open issue atau contact developer. Happy generating! 🚀
+### v1.2.0 (Current)
+- Migrasi dari Google Gemini 2.5 Flash ke BytePlus SeeDream v4.5
+- Upgrade resolusi output ke 2048x2560 (Ultra High Quality)
+- Menggunakan REST API native fetch (menghapus dependency SDK)
+- Mendukung "use cache" dan optimasi performa baru.
