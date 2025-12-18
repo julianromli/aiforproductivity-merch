@@ -14,9 +14,9 @@ Before starting, get these accounts (all free):
    - Sign up: https://supabase.com
    - Free tier: Perfect for starting
 
-2. **Google AI Studio Account** (AI Image Generation)
-   - Sign up: https://aistudio.google.com
-   - Free tier: 1,500 requests/day
+2. **BytePlus Console Account** (AI Image Generation)
+   - Sign up: https://console.byteplus.com
+   - Free trial available: 2,000 requests initial quota
 
 3. **Vercel Account** (Optional, for deployment)
    - Sign up: https://vercel.com
@@ -102,12 +102,12 @@ Follow the interactive prompts.
 
 💡 **Tip**: Don't close this tab yet, you'll need these in Step 4!
 
-### 3.2 Get Google AI (Gemini) Key
+### 3.2 Get BytePlus AI (SeeDream) Key
 
-1. Go to https://aistudio.google.com/app/apikey
-2. Sign in with Google account
+1. Go to https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey
+2. Sign in with BytePlus account
 3. Click **"Create API Key"**
-4. Copy the key (starts with `AIza...`)
+4. Copy the key
 
 ---
 
@@ -124,8 +124,8 @@ Follow the interactive prompts.
 Replace the placeholder values with your actual keys:
 
 ```env
-# Google AI
-GEMINI_API_KEY=AIza... # ← Paste your Google AI key here
+# BytePlus AI
+BYTEPLUS_API_KEY=your_key_here # ← Paste your BytePlus AI key here
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co # ← Paste Project URL
@@ -276,9 +276,8 @@ Once logged in to admin panel, you can:
 ### ❌ "AI image generation not working"
 
 **Solution**:
-1. Check `GEMINI_API_KEY` in `.env.local`
-2. Verify key is valid: https://aistudio.google.com/app/apikey
-3. Check you haven't exceeded free tier limits (1,500/day)
+1. Check `BYTEPLUS_API_KEY` in `.env.local`
+2. Verify key is valid: https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey
 
 ---
 
@@ -304,7 +303,7 @@ Save this for future reference:
 | **Customize Panel** | http://localhost:3000/admin/customize |
 | **AI Prompts** | http://localhost:3000/admin/prompts |
 | **Supabase Dashboard** | https://supabase.com/dashboard |
-| **Google AI Studio** | https://aistudio.google.com |
+| **BytePlus Console** | https://console.byteplus.com |
 
 ---
 

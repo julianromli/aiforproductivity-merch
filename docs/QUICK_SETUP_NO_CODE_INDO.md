@@ -14,9 +14,9 @@ Sebelum mulai, bikin akun di platform ini dulu (semua gratis):
    - Daftar di: https://supabase.com
    - Gratis: Cocok untuk pemula dan bisnis kecil
 
-2. **Akun Google AI Studio** (Fitur AI Gambar)
-   - Daftar di: https://aistudio.google.com
-   - Gratis: 1,500 request per hari
+2. **Akun BytePlus Console** (Fitur AI Gambar)
+   - Daftar di: https://console.byteplus.com
+   - Free trial: Kuota awal 2,000 request
 
 3. **Akun Vercel** (Opsional, untuk deploy online)
    - Daftar di: https://vercel.com
@@ -102,12 +102,12 @@ Ikuti petunjuk interaktif yang muncul.
 
 💡 **Tips**: Biarkan tab ini tetap terbuka, nanti butuh di Langkah 4!
 
-### 3.2 Ambil Key Google AI (Gemini)
+### 3.2 Ambil Key BytePlus AI (SeeDream)
 
-1. Buka https://aistudio.google.com/app/apikey
-2. Login dengan akun Google
+1. Buka https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey
+2. Login dengan akun BytePlus
 3. Klik **"Create API Key"**
-4. Copy key-nya (dimulai dengan `AIza...`)
+4. Copy key-nya
 
 ---
 
@@ -124,8 +124,8 @@ Ikuti petunjuk interaktif yang muncul.
 Ganti nilai placeholder dengan key asli yang kamu dapat tadi:
 
 ```env
-# Google AI
-GEMINI_API_KEY=AIza... # ← Paste Google AI key di sini
+# BytePlus AI
+BYTEPLUS_API_KEY=your_key_here # ← Paste BytePlus AI key di sini
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co # ← Paste Project URL
@@ -276,9 +276,8 @@ Setelah login ke admin panel, kamu bisa:
 ### ❌ "Fitur AI generate gambar tidak jalan"
 
 **Solusi**:
-1. Cek `GEMINI_API_KEY` di `.env.local`
-2. Verifikasi key masih valid: https://aistudio.google.com/app/apikey
-3. Cek kamu belum exceed limit gratis (1,500 request/hari)
+1. Cek `BYTEPLUS_API_KEY` di `.env.local`
+2. Verifikasi key masih valid: https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey
 
 ---
 
@@ -304,7 +303,7 @@ Simpan ini untuk referensi nanti:
 | **Customize Panel** | http://localhost:3000/admin/customize |
 | **AI Prompts** | http://localhost:3000/admin/prompts |
 | **Supabase Dashboard** | https://supabase.com/dashboard |
-| **Google AI Studio** | https://aistudio.google.com |
+| **BytePlus Console** | https://console.byteplus.com |
 
 ---
 
