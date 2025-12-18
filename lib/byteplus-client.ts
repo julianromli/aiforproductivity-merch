@@ -82,7 +82,7 @@ export async function generateImageWithByteplus(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "seedream-4.5",
+        model: "seedream-4-5-251128",
         prompt: params.prompt,
         image: imageDataUris,
         size: "2048x2560",
@@ -90,7 +90,7 @@ export async function generateImageWithByteplus(
         watermark: false,
         response_format: "b64_json",
         optimize_prompt_options: {
-          mode: "fast"
+          mode: "standard"
         }
       })
     })
